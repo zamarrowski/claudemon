@@ -13,8 +13,22 @@ import { join } from 'node:path'
 import { SPRITES_DIR, spriteFile } from '../src/paths.mjs'
 import { pool, progress } from './lib.mjs'
 
+/**
+ * The one thing here that comes from a repository nobody in this project controls,
+ * so it is named by commit rather than by branch.
+ *
+ * `master` meant the bytes this installs were whatever that branch pointed at on the
+ * day it ran — 302 files, written to disk and then handed to the decoder in
+ * src/png.mjs, which is hand-rolled. A commit cannot be moved under us, so what an
+ * install fetches today is what it fetched when it was last looked at.
+ *
+ * Bumping it is deliberate: pick a commit from PokeAPI/sprites, put it here, and the
+ * next install picks up the new artwork.
+ */
+const SPRITES_COMMIT = '8dfa3d97e953caaafaafd4963eff7621811af08e'
+
 const BASE =
-  'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white'
+  `https://raw.githubusercontent.com/PokeAPI/sprites/${SPRITES_COMMIT}/sprites/pokemon/versions/generation-v/black-white`
 
 const CONCURRENCY = 8
 const KANTO = 151
