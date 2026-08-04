@@ -15,6 +15,7 @@ import { stat } from 'node:fs/promises'
 import { createServer } from 'node:http'
 import { dirname, extname, join, normalize } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { contains } from '../src/paths.mjs'
 import { bold, dim, red } from '../src/ui/ansi.mjs'
 
 const SITE_DIR = join(dirname(fileURLToPath(import.meta.url)), '..', 'docs')
@@ -60,7 +61,7 @@ const server = createServer(async (req, res) => {
   // normalize() collapses any ../ before it can climb out of docs/; the check after
   // it is what catches whatever normalize() leaves behind.
   let filePath = join(SITE_DIR, normalize(target))
-  if (filePath !== SITE_DIR && !filePath.startsWith(SITE_DIR + '/')) {
+  if (!contains(SITE_DIR, filePath)) {
     console.log(dim(`  403 ${target}`))
     return send(res, 403, 'Forbidden\n')
   }

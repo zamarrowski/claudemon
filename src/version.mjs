@@ -7,7 +7,7 @@
 import { readdirSync, readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { PLUGIN_CACHE } from './paths.mjs'
+import { contains, PLUGIN_CACHE } from './paths.mjs'
 
 /** The root of the copy this process is running from. */
 export const APP_ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
@@ -88,7 +88,12 @@ export function newestInstalled(cache = PLUGIN_CACHE) {
  * installed plugin through `claude plugin update`. Doing either to the other leaves
  * a mess — a pull in the plugin cache would be undone by the next install, and
  * `claude plugin update` would not touch the clone the launcher is pointing at.
+ *
+ * Asked of the paths rather than of their text — see {@link contains}. Comparing the
+ * strings meant naming a separator, the one named was `/`, and so on Windows every
+ * installed copy looked like a clone and was offered a `git pull` in a directory that
+ * has never been a repository.
  */
 export function isPluginCopy(root = APP_ROOT, cache = PLUGIN_CACHE) {
-  return root.startsWith(`${cache}/`) || root === cache
+  return contains(cache, root)
 }

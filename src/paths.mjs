@@ -3,7 +3,7 @@
 
 import { existsSync } from 'node:fs'
 import { homedir } from 'node:os'
-import { dirname, join } from 'node:path'
+import { dirname, isAbsolute, join, relative, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 export const HOME = process.env.CLAUDEMON_HOME || join(homedir(), '.claudemon')
@@ -113,4 +113,30 @@ export function sessionFile(id) {
 
 export function spriteFile(side, id, ext) {
   return join(SPRITES_DIR, side, `${id}.${ext}`)
+}
+
+/**
+ * Whether `child` is `parent` itself, or sits somewhere under it.
+ *
+ * In one place because the obvious way to write it is wrong, and it had been written
+ * the obvious way twice: asking whether the child's text starts with the parent's,
+ * plus a separator. Spelling a separator is the mistake — the one spelled was `/`, and
+ * `join` hands back `\` on Windows, so both callers answered no to paths that were in
+ * fact inside. One decided a plugin Claude Code had installed was a git clone and
+ * offered to `git pull` in it; the other was the guard keeping the site server inside
+ * docs/, which then refused to serve the site at all.
+ *
+ * `relative` is asked instead: it knows what separates a path here, and knows that on
+ * Windows either character does.
+ */
+export function contains(parent, child) {
+  const inside = relative(parent, child)
+  // The directory itself, which both callers count as inside.
+  if (inside === '') return true
+  // Only reachable on Windows, and only across drives: there is no relative path from
+  // one to another, so `relative` can only answer with an absolute one.
+  if (isAbsolute(inside)) return false
+  // Leaving means climbing out first, and `relative` normalises what it returns, so
+  // `..` can only ever be the first segment.
+  return inside.split(sep)[0] !== '..'
 }
