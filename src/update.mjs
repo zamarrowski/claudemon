@@ -25,9 +25,17 @@ import { APP_ROOT, VERSION, isNewer, isPluginCopy, newestInstalled, versionAt } 
  * The manifest on the default branch rather than a release or a tag: it is what
  * `/plugin install` resolves, so it is the version somebody installing right now
  * would get. Overridable so the tests never reach the network.
+ *
+ * This fork's own manifest, not the one it was forked from. The point of installing
+ * from a fork is that upstream cannot reach this machine without being read first —
+ * and a check pointing upstream gave that away twice over. It announced a version
+ * that is not in this fork and that pressing U therefore could not fetch, and it
+ * told a repository nobody here installed from that somebody is running the game
+ * today. What is worth knowing is whether *this* fork has moved, which is a thing
+ * that only happens after upstream has been merged deliberately.
  */
 export const MANIFEST_URL = process.env.CLAUDEMON_MANIFEST_URL
-  || 'https://raw.githubusercontent.com/zamarrowski/claudemon/main/.claude-plugin/plugin.json'
+  || 'https://raw.githubusercontent.com/huaiyukhaw/claudemon/main/.claude-plugin/plugin.json'
 
 /** Once a day. A toy game does not need to know sooner, and neither do you. */
 export const CHECK_INTERVAL_MS = 24 * 60 * 60 * 1000
