@@ -2,7 +2,7 @@ import { crc32, deflateSync } from 'node:zlib'
 import { expect, test } from 'vitest'
 
 import { PNG_SIGNATURE_BYTES } from './constants.mjs'
-import { decodePng } from './png.mjs'
+import { decodePng, encodePng } from './png.mjs'
 
 const chunk = (type, data) => {
   const out = Buffer.alloc(data.length + 12)
@@ -329,4 +329,35 @@ test('Should throw naming the row when a scanline uses an unknown filter', () =>
   })
 
   expect(() => decodePng(png)).toThrow('unsupported PNG filter 5 on row 1')
+})
+
+test('Should write a PNG that any decoder reads back pixel for pixel', () => {
+  const pixels = new Uint8Array([
+    255, 0, 0, 255, 0, 255, 0, 128, 0, 0, 255, 255, 9, 9, 9, 0,
+  ])
+  const bytes = encodePng({ width: 2, height: 2, pixels })
+
+  expect(bytes.subarray(0, 8)).toEqual(Buffer.from(PNG_SIGNATURE_BYTES))
+  expect(bytes.toString('ascii', 12, 16), 'the header comes first').toBe('IHDR')
+  expect(bytes.toString('ascii', bytes.length - 8, bytes.length - 4)).toBe(
+    'IEND',
+  )
+
+  const decoded = decodePng(bytes)
+
+  expect(decoded.width).toBe(2)
+  expect(decoded.height).toBe(2)
+  expect([...decoded.pixels]).toEqual([...pixels])
+})
+
+test('Should sign every chunk it writes with a checksum the reader agrees with', () => {
+  const bytes = encodePng({
+    width: 1,
+    height: 1,
+    pixels: new Uint8Array([1, 2, 3, 255]),
+  })
+  const length = bytes.readUInt32BE(8)
+  const body = bytes.subarray(12, 16 + length)
+
+  expect(bytes.readUInt32BE(16 + length)).toBe(crc32(body))
 })

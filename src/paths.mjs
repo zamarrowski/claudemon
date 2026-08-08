@@ -29,6 +29,8 @@ export const STATUS_FILE = join(HOME, 'status.json')
 
 export const WORKED_FILE = join(HOME, 'worked.json')
 
+export const CARD_FILE = join(HOME, 'card.png')
+
 export const SESSIONS_DIR = join(HOME, 'sessions')
 
 export const CONFIG_FILE = join(HOME, 'config.json')

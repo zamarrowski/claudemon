@@ -1,7 +1,41 @@
-import { inflateSync } from 'node:zlib'
-import { PNG_CHANNELS, PNG_SIGNATURE_BYTES } from './constants.mjs'
+import { deflateSync, inflateSync } from 'node:zlib'
+import {
+  PNG_BIT_DEPTH,
+  PNG_CHANNELS,
+  PNG_COLOR_TYPE_RGBA,
+  PNG_CRC_POLYNOMIAL,
+  PNG_CRC_SEED,
+  PNG_FILTER_NONE,
+  PNG_SIGNATURE_BYTES,
+} from './constants.mjs'
 
 export const SIGNATURE = Buffer.from(PNG_SIGNATURE_BYTES)
+
+const buildCrcTable = () => {
+  const table = new Uint32Array(256)
+
+  for (let index = 0; index < 256; index++) {
+    let value = index
+
+    for (let bit = 0; bit < 8; bit++) {
+      value = value & 1 ? PNG_CRC_POLYNOMIAL ^ (value >>> 1) : value >>> 1
+    }
+
+    table[index] = value
+  }
+
+  return table
+}
+
+const CRC_TABLE = buildCrcTable()
+
+const crc32 = (bytes) => {
+  let crc = PNG_CRC_SEED
+
+  for (const byte of bytes) crc = CRC_TABLE[(crc ^ byte) & 0xff] ^ (crc >>> 8)
+
+  return (crc ^ PNG_CRC_SEED) >>> 0
+}
 
 const paeth = (left, above, upperLeft) => {
   const estimate = left + above - upperLeft
@@ -180,4 +214,49 @@ export const decodePng = (buffer) => {
   }
 
   return { width, height, pixels }
+}
+
+const chunk = (type, data) => {
+  const out = Buffer.alloc(data.length + 12)
+
+  out.writeUInt32BE(data.length, 0)
+  out.write(type, 4, 'ascii')
+  data.copy(out, 8)
+  out.writeUInt32BE(crc32(out.subarray(4, 8 + data.length)), 8 + data.length)
+
+  return out
+}
+
+const headerChunk = (width, height) => {
+  const data = Buffer.alloc(13)
+
+  data.writeUInt32BE(width, 0)
+  data.writeUInt32BE(height, 4)
+  data[8] = PNG_BIT_DEPTH
+  data[9] = PNG_COLOR_TYPE_RGBA
+
+  return chunk('IHDR', data)
+}
+
+const filteredRows = ({ width, height, pixels }) => {
+  const stride = width * 4
+  const raw = Buffer.alloc(height * (stride + 1))
+
+  for (let y = 0; y < height; y++) {
+    const start = y * (stride + 1)
+
+    raw[start] = PNG_FILTER_NONE
+    raw.set(pixels.subarray(y * stride, (y + 1) * stride), start + 1)
+  }
+
+  return raw
+}
+
+export const encodePng = (image) => {
+  return Buffer.concat([
+    SIGNATURE,
+    headerChunk(image.width, image.height),
+    chunk('IDAT', deflateSync(filteredRows(image))),
+    chunk('IEND', Buffer.alloc(0)),
+  ])
 }

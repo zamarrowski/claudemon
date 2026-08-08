@@ -1,10 +1,15 @@
 #!/usr/bin/env node
 
 import { mkdirSync, watch } from 'node:fs'
-import { basename } from 'node:path'
+import { basename, resolve } from 'node:path'
 import { createApp } from '../src/app.mjs'
 import { loadConfig } from '../src/config.mjs'
 import {
+  CARD_NO_OPEN_FLAG,
+  CARD_NO_SAVE_HINT,
+  CARD_NO_SAVE_MESSAGE,
+  CARD_OUT_FLAG,
+  CARD_WRITTEN_PREFIX,
   DATASET_MISSING_HINT,
   DATASET_MISSING_MESSAGE,
   FRAME_MS,
@@ -14,7 +19,8 @@ import {
   UPDATE_POLL_MS,
 } from '../src/constants.mjs'
 import { isDataReady } from '../src/data.mjs'
-import { HOME, QUEUE_FILE } from '../src/paths.mjs'
+import { CARD_FILE, HOME, QUEUE_FILE } from '../src/paths.mjs'
+import { revealFile } from '../src/reveal.mjs'
 import {
   loadSave,
   publishStatus,
@@ -22,6 +28,7 @@ import {
   saveGame,
 } from '../src/state.mjs'
 import { bold, brightYellow, dim } from '../src/ui/ansi.mjs'
+import { writeCard } from '../src/ui/card.mjs'
 import { createScreen } from '../src/ui/screen.mjs'
 
 const bail = (message, hint) => {
@@ -44,6 +51,28 @@ const openSave = (app) => {
   }
 
   publishStatus(app.save)
+}
+
+const outPath = (args) => {
+  const flag = args.indexOf(CARD_OUT_FLAG)
+
+  if (flag === -1 || !args[flag + 1]) return CARD_FILE
+
+  return resolve(args[flag + 1])
+}
+
+const exportCard = (args) => {
+  if (!isDataReady()) bail(DATASET_MISSING_MESSAGE, DATASET_MISSING_HINT)
+
+  const save = loadSave()
+
+  if (!save) bail(CARD_NO_SAVE_MESSAGE, CARD_NO_SAVE_HINT)
+
+  const path = writeCard(save, outPath(args))
+
+  process.stdout.write(`${CARD_WRITTEN_PREFIX}${bold(path)}\n`)
+
+  if (!args.includes(CARD_NO_OPEN_FLAG)) revealFile(path)
 }
 
 const main = () => {
@@ -138,4 +167,7 @@ const main = () => {
   process.stdin.resume()
 }
 
-main()
+const [command, ...args] = process.argv.slice(2)
+
+if (command === 'card') exportCard(args)
+else main()
