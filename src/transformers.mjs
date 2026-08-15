@@ -270,6 +270,28 @@ export const transformResponseUpdateState = (state) => {
 
 export const transformRequestWriteUpdateState = (state) => mapUpdateState(state)
 
+const mapUpdateStep = (step) => {
+  return {
+    id: step.id,
+    label: step.label,
+    done: step.done,
+    status: step.status,
+    detail: step.detail,
+  }
+}
+
+export const transformResponseUpdateRun = (run) => {
+  if (!run) return null
+
+  return {
+    kind: run.kind,
+    state: run.state,
+    from: run.from,
+    to: run.to,
+    steps: run.steps.map(mapUpdateStep),
+  }
+}
+
 const mapTradeMon = (mon) => {
   return {
     species: mon.species,

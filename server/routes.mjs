@@ -6,6 +6,7 @@ import { writeCard } from '../src/node/card.mjs'
 import {
   transformResponseConfig,
   transformResponseSave,
+  transformResponseUpdateRun,
 } from '../src/transformers.mjs'
 import { isSaveShaped } from '../src/state.mjs'
 import { newTradeId } from '../src/trade.mjs'
@@ -13,7 +14,6 @@ import { CLIENT_HEADER } from '../src/constants.mjs'
 import { HOST, SERVER_MESSAGES } from './constants.mjs'
 import { readBody, sendEmpty, sendError, sendJson } from './respond.mjs'
 import {
-  transformRequestUpdateRun,
   transformResponseGift,
   transformResponseTradeText,
 } from './transformers.mjs'
@@ -119,7 +119,7 @@ export const createRoutes = ({
   }
 
   const handleUpdateChange = (run) => {
-    hub.broadcast('update', transformRequestUpdateRun(run))
+    hub.broadcast('update', transformResponseUpdateRun(run))
   }
 
   const postUpdate = (request, response) => {
@@ -127,7 +127,7 @@ export const createRoutes = ({
       update = makeUpdateRun({ onChange: handleUpdateChange })
     }
 
-    sendJson(response, transformRequestUpdateRun(update))
+    sendJson(response, transformResponseUpdateRun(update))
   }
 
   const postQuit = (request, response) => {

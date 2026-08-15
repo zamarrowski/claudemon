@@ -80,38 +80,14 @@ const aTrainerEncounter = () => {
   }
 }
 
-test('Should send a trainer out with their whole team and say who they are', () => {
+test('Should open a trainer encounter as a battle and say who turned up', () => {
   const ctx = aGame({ encounter: aTrainerEncounter() })
 
   ctx.startNextBattle()
 
   expect(ctx.mode).toBe('battle')
-  expect(ctx.battle.state.trainer.name).toBe('Wade')
-  expect(ctx.battle.state.trainer.team).toHaveLength(2)
-  expect(ctx.battle.state.foe.mon.species).toBe(74)
   expect(ctx.battle.trainerIntro, 'the trainer is shown first').toBe(true)
   expect(ctx.battle.message).toMatch(/WADE/i)
-})
-
-test('Should say a wild Pokemon is shiny when it is', () => {
-  const ctx = aGame({
-    encounter: {
-      kind: 'wild',
-      species: 10,
-      name: 'caterpie',
-      level: 3,
-      trainer: null,
-      seed: 1,
-      shiny: true,
-      expiresAt: Date.now() + 30_000,
-    },
-  })
-
-  ctx.startNextBattle()
-
-  const said = [ctx.battle.message, ...ctx.battle.events.map((e) => e.text)]
-
-  expect(said.join(' ')).toMatch(/sparkles/i)
 })
 
 test('Should hatch the egg the day care laid and put it in the team', () => {

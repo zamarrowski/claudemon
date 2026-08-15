@@ -33,6 +33,10 @@ export const INDEX_PATH = 'index.html'
 
 export const NO_STORE = 'no-store'
 
+export const NO_CACHE = 'no-cache'
+
+export const NOT_MODIFIED = 304
+
 export const SSE_HEADERS = {
   'content-type': 'text/event-stream; charset=utf-8',
   'cache-control': NO_STORE,

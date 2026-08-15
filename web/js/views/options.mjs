@@ -10,7 +10,13 @@ import {
   UPDATE_CHECK_BY_MODE,
   UPDATE_CHECK_VALUES,
 } from './constants.mjs'
-import { clampSelection, currentIndex, wrap } from './helpers.mjs'
+import {
+  clampSelection,
+  currentIndex,
+  cursorDelta,
+  selector,
+  wrap,
+} from './helpers.mjs'
 
 export const SETTINGS = [
   {
@@ -75,24 +81,17 @@ export const draw = (ctx) => {
   </div>`
 }
 
-export const select = (ctx, index) => {
-  ctx.optionsSelection = index
-  ctx.optionsMessage = null
-}
+export const select = selector('optionsSelection', 'optionsMessage')
 
 export const onKey = (ctx, key) => {
-  if (key.name === 'up' || key.name === 'k') {
-    ctx.optionsSelection = wrap(ctx.optionsSelection - 1, SETTINGS.length)
-    ctx.optionsMessage = null
-    ctx.playSound('cursor')
-  } else if (key.name === 'down' || key.name === 'j') {
-    ctx.optionsSelection = wrap(ctx.optionsSelection + 1, SETTINGS.length)
-    ctx.optionsMessage = null
-    ctx.playSound('cursor')
-  } else if (key.name === 'left' || key.name === 'h') {
+  if (key.name === 'left' || key.name === 'h') {
     change(ctx, -1)
     ctx.playSound('select')
-  } else if (
+
+    return
+  }
+
+  if (
     key.name === 'right' ||
     key.name === 'l' ||
     key.name === 'enter' ||
@@ -100,9 +99,22 @@ export const onKey = (ctx, key) => {
   ) {
     change(ctx, 1)
     ctx.playSound('select')
-  } else if (key.name === 'esc' || key.name === 'q') {
+
+    return
+  }
+
+  if (key.name === 'esc' || key.name === 'q') {
     ctx.optionsMessage = null
     ctx.playSound('back')
     ctx.setMode('home')
+
+    return
   }
+
+  const delta = cursorDelta(ctx, key)
+
+  if (!delta) return
+
+  ctx.optionsSelection = wrap(ctx.optionsSelection + delta, SETTINGS.length)
+  ctx.optionsMessage = null
 }

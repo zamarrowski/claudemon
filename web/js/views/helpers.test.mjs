@@ -1,15 +1,17 @@
-import { expect, test } from 'vitest'
+import { expect, test, vi } from 'vitest'
 import { createPokemon } from '../../../src/pokemon.mjs'
 import { makeRng } from '../../../src/rng.mjs'
 import { markupOf } from '../dom.mjs'
 import {
   clampSelection,
+  cursorDelta,
   evolutionWording,
   hpBand,
   hpBar,
   levelRangeLabel,
   nextPartySort,
   partySelectionAfterSort,
+  selector,
   sortedPartyEntries,
   typeBadge,
   wrap,
@@ -27,6 +29,41 @@ test('Should walk a menu round in both directions and hold still on an empty one
   expect(wrap(1, 0)).toBe(0)
   expect(clampSelection(9, 3)).toBe(2)
   expect(clampSelection(-2, 3)).toBe(0)
+})
+
+test('Should take a step from either the arrows or the vim keys and blip once for each', () => {
+  const playSound = vi.fn()
+  const ctx = { playSound }
+  const step = (name) => cursorDelta(ctx, { name })
+
+  expect(['up', 'k', 'left'].map(step)).toEqual([-1, -1, -1])
+  expect(['down', 'j', 'right'].map(step)).toEqual([1, 1, 1])
+  expect(step('enter'), 'nothing else is a cursor key').toBe(0)
+  expect(step('s')).toBe(0)
+
+  expect(playSound).toHaveBeenCalledTimes(6)
+  expect(playSound).toHaveBeenCalledWith('cursor')
+})
+
+test('Should put the cursor where it was clicked and rub out what the screen said', () => {
+  const ctx = {
+    bagSelection: 0,
+    bagMessage: 'Save the Poké Ball for something in the grass.',
+    homeSelection: 0,
+  }
+
+  selector('bagSelection', 'bagMessage')(ctx, 3)
+
+  expect(ctx.bagSelection).toBe(3)
+  expect(ctx.bagMessage).toBeNull()
+
+  selector('homeSelection')(ctx, 2)
+
+  expect(ctx.homeSelection).toBe(2)
+  expect(
+    Object.keys(ctx),
+    'a screen with nothing to say gets no stray field',
+  ).toEqual(['bagSelection', 'bagMessage', 'homeSelection'])
 })
 
 test('Should colour the HP bar by how much of it is left', () => {

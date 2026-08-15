@@ -17,10 +17,10 @@ export default defineConfig({
       exclude: ['**/*.test.mjs', 'web/js/main.mjs'],
       reporter: ['text', 'html', 'json-summary'],
       thresholds: {
-        statements: 96,
+        statements: 96.1,
         branches: 88,
-        functions: 97.8,
-        lines: 97,
+        functions: 98.1,
+        lines: 97.1,
       },
     },
   },

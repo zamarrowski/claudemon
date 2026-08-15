@@ -19,6 +19,7 @@ import {
   markFaced,
   setLead,
 } from './state.mjs'
+import { arrivalWording } from './arrivals.mjs'
 import { ballSteps } from './ballThrow.mjs'
 import { isMoveDisabled } from './volatile.mjs'
 
@@ -485,14 +486,9 @@ const processNextStep = (ctx) => {
   }
 
   if (step.kind === 'caught') {
-    const where =
-      step.destination === 'party'
-        ? BATTLE_MESSAGES.joinedTeam
-        : BATTLE_MESSAGES.wentToBox
-
     queueMessages(ctx, [
       `${step.name.toUpperCase()} was added to the Pokédex.`,
-      where,
+      arrivalWording(step.destination),
     ])
     return
   }

@@ -14,7 +14,13 @@ import {
   TRAINER_RECORD_TITLE,
   TRAINER_TITLE,
 } from './constants.mjs'
-import { badgeStrip, clampSelection, wrap } from './helpers.mjs'
+import {
+  badgeStrip,
+  clampSelection,
+  cursorDelta,
+  selector,
+  wrap,
+} from './helpers.mjs'
 
 export const recordRows = (ctx) => {
   const { stats, dex } = ctx.save
@@ -97,17 +103,16 @@ export const draw = (ctx) => {
   </div>`
 }
 
-export const select = (ctx, index) => {
-  ctx.trainerSelection = index
-}
+export const select = selector('trainerSelection')
 
 export const onKey = (ctx, key) => {
-  if (key.name === 'up' || key.name === 'k') {
-    ctx.trainerSelection = wrap(ctx.trainerSelection - 1, ACHIEVEMENTS.length)
-    ctx.playSound('cursor')
-  } else if (key.name === 'down' || key.name === 'j') {
-    ctx.trainerSelection = wrap(ctx.trainerSelection + 1, ACHIEVEMENTS.length)
-    ctx.playSound('cursor')
+  const delta = cursorDelta(ctx, key)
+
+  if (delta) {
+    ctx.trainerSelection = wrap(
+      ctx.trainerSelection + delta,
+      ACHIEVEMENTS.length,
+    )
   } else if (key.name === 's') {
     ctx.playSound('select')
     ctx.exportCard()

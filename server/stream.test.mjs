@@ -5,7 +5,6 @@ import {
   transformRequestActivity,
   transformRequestBootstrap,
   transformRequestEncounter,
-  transformRequestUpdateRun,
   transformResponseGift,
   transformResponseTradeText,
 } from './transformers.mjs'
@@ -242,7 +241,6 @@ test('Should map what goes out to the browser and what comes back in', () => {
 
   expect(activity.cwd).toBeUndefined()
   expect(transformRequestEncounter(null)).toBeNull()
-  expect(transformRequestUpdateRun(null)).toBeNull()
 
   const bootstrap = transformRequestBootstrap({
     version: '2.0.0',

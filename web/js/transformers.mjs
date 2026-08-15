@@ -62,24 +62,6 @@ export const transformResponseBootstrap = (payload) => {
   }
 }
 
-export const transformResponseUpdateRun = (run) => {
-  if (!run) return null
-
-  return {
-    kind: run.kind,
-    state: run.state,
-    from: run.from,
-    to: run.to,
-    steps: run.steps.map((step) => ({
-      id: step.id,
-      label: step.label,
-      done: step.done,
-      status: step.status,
-      detail: step.detail,
-    })),
-  }
-}
-
 export const transformResponseTradeRead = (payload) => {
   if (!payload.ok) return { ok: false, reason: payload.reason }
 

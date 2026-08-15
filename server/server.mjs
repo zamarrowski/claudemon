@@ -44,7 +44,7 @@ export const createServer = ({ game, onQuit = () => {}, makeUpdateRun }) => {
       return
     }
 
-    sendFile(response, asset)
+    sendFile(request, response, asset)
   }
 
   const failRequest = (response, error) => {

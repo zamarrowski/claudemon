@@ -12,7 +12,8 @@ import {
   DEFAULT_MIME_TYPE,
   INDEX_PATH,
   MIME_TYPES,
-  NO_STORE,
+  NOT_MODIFIED,
+  NO_CACHE,
   SPRITE_CACHE_CONTROL,
 } from './constants.mjs'
 
@@ -30,13 +31,13 @@ const ROOTS = [
   {
     prefix: '/src/',
     dir: ENGINE_DIR,
-    cacheControl: NO_STORE,
+    cacheControl: NO_CACHE,
     hidden: 'node/',
   },
   {
     prefix: '/data/',
     dir: DATA_DIR,
-    cacheControl: NO_STORE,
+    cacheControl: NO_CACHE,
     lookUp: dataFile,
   },
 ]
@@ -49,9 +50,20 @@ const within = (root, relative) => {
   return target
 }
 
+const etagOf = (stats) => {
+  const size = stats.size.toString(16)
+  const modified = Math.trunc(stats.mtimeMs).toString(16)
+
+  return `W/"${size}-${modified}"`
+}
+
 const fileAt = (path) => {
   try {
-    return statSync(path).isFile() ? path : null
+    const stats = statSync(path)
+
+    if (!stats.isFile()) return null
+
+    return { path, etag: etagOf(stats) }
   } catch {
     return null
   }
@@ -67,33 +79,49 @@ const fileIn = (root, relative) => {
   return fileAt(target)
 }
 
+const assetOf = (file, cacheControl) => {
+  if (!file) return null
+
+  return { path: file.path, etag: file.etag, cacheControl }
+}
+
 export const resolveAsset = (pathname) => {
   const root = ROOTS.find((entry) => pathname.startsWith(entry.prefix))
 
   if (root) {
-    const path = fileIn(root, pathname.slice(root.prefix.length))
+    const relative = pathname.slice(root.prefix.length)
 
-    if (!path) return null
-
-    return { path, cacheControl: root.cacheControl }
+    return assetOf(fileIn(root, relative), root.cacheControl)
   }
 
   const page = { dir: WEB_DIR }
-  const path = fileIn(page, pathname === '/' ? INDEX_PATH : pathname.slice(1))
+  const name = pathname === '/' ? INDEX_PATH : pathname.slice(1)
 
-  if (!path) return null
-
-  return { path, cacheControl: NO_STORE }
+  return assetOf(fileIn(page, name), NO_CACHE)
 }
 
 export const contentTypeOf = (path) => {
   return MIME_TYPES[extname(path).toLowerCase()] ?? DEFAULT_MIME_TYPE
 }
 
-export const sendFile = (response, { path, cacheControl }) => {
+const matchesEtag = (header, etag) => {
+  if (!header) return false
+
+  return header.split(',').some((candidate) => candidate.trim() === etag)
+}
+
+export const sendFile = (request, response, { path, cacheControl, etag }) => {
+  if (matchesEtag(request.headers['if-none-match'], etag)) {
+    response.writeHead(NOT_MODIFIED, { 'cache-control': cacheControl, etag })
+    response.end()
+
+    return
+  }
+
   response.writeHead(200, {
     'content-type': contentTypeOf(path),
     'cache-control': cacheControl,
+    etag,
   })
 
   createReadStream(path).pipe(response)

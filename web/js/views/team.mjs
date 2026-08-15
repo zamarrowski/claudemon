@@ -9,6 +9,7 @@ import {
   TEAM_TITLE,
 } from './constants.mjs'
 import {
+  cursorDelta,
   nextPartySort,
   partyEntryAt,
   partySelectionAfterSort,
@@ -58,12 +59,10 @@ export const onKey = (ctx, key) => {
   const sort = ctx.teamSort
   const total = party.length
   const selected = partyEntryAt(party, ctx.teamSelection, sort)
+  const delta = cursorDelta(ctx, key)
 
-  if (key.name === 'up' || key.name === 'k') {
-    ctx.teamSelection = wrap(ctx.teamSelection - 1, total)
-    ctx.clearTeamMessages()
-  } else if (key.name === 'down' || key.name === 'j') {
-    ctx.teamSelection = wrap(ctx.teamSelection + 1, total)
+  if (delta) {
+    ctx.teamSelection = wrap(ctx.teamSelection + delta, total)
     ctx.clearTeamMessages()
   } else if (key.name === 'enter' || key.name === 'space') {
     ctx.makeLead(selected.index)

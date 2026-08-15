@@ -119,3 +119,32 @@ test('Should mark the menu item the cursor is on', () => {
 
   expect(selected).toContain('DAY CARE')
 })
+
+test('Should announce a trainer in the grass with their sprite rather than a wild one', () => {
+  const markup = markupOf(
+    draw(
+      aCtx({
+        encounter: {
+          kind: 'trainer',
+          species: null,
+          name: null,
+          level: null,
+          trainer: {
+            class: 'Hiker',
+            name: 'Wade',
+            sprite: 'hiker',
+            team: [{ species: 74, level: 8 }],
+          },
+          seed: 4,
+          shiny: false,
+          expiresAt: Date.now() + 9000,
+        },
+      }),
+    ),
+  )
+
+  expect(markup).toContain('HIKER WADE')
+  expect(markup).toContain('wants to battle')
+  expect(markup).toContain('/sprites/trainers/hiker.png')
+  expect(markup, 'and no wild wording').not.toContain('appeared!')
+})

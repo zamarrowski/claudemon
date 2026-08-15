@@ -1,5 +1,9 @@
 import { isWorking } from '../../src/activity.mjs'
-import { createBattle } from '../../src/battle.mjs'
+import {
+  arrivalMessage,
+  arrivalWording,
+  hatchLines,
+} from '../../src/arrivals.mjs'
 import {
   advanceMessage,
   backOutOfBattleMenu,
@@ -11,7 +15,6 @@ import {
 import { createLocalSession } from '../../src/battleSession.mjs'
 import {
   BAG_MESSAGES,
-  BATTLE_MESSAGES,
   BOX_MESSAGES,
   DAYCARE_MESSAGES,
   DAYCARE_STEPS_PER_SAVE,
@@ -20,7 +23,6 @@ import {
   HOME_NOTICES,
   ITEMS,
   TRADE_MESSAGES,
-  TRAINER_MESSAGES,
 } from '../../src/constants.mjs'
 import { species } from '../../src/data.mjs'
 import {
@@ -33,6 +35,7 @@ import {
   walkEgg,
 } from '../../src/daycare.mjs'
 import { encounterSpecies } from '../../src/encounter.mjs'
+import { openingBattle, trainerBattle } from '../../src/encounterBattle.mjs'
 import {
   advanceGymRun,
   createGymRun,
@@ -46,7 +49,7 @@ import {
 } from '../../src/gym.mjs'
 import { canSpare, sortedPartyEntries } from '../../src/helpers.mjs'
 import { applyItem } from '../../src/itemUse.mjs'
-import { createPokemon, displayName } from '../../src/pokemon.mjs'
+import { displayName } from '../../src/pokemon.mjs'
 import { describeStep } from '../../src/progression.mjs'
 import { makeRng, randomSeed } from '../../src/rng.mjs'
 import { buy, itemsInBag, usableOnParty } from '../../src/shop.mjs'
@@ -58,119 +61,14 @@ import {
   depositPokemon,
   hasBadge,
   healParty,
-  markFaced,
   markSeen,
   setLead,
   withdrawPokemon,
 } from '../../src/state.mjs'
 import { giveAway, takeIn } from '../../src/trade.mjs'
-import { sentOutLine, trainerClass, trainerLabel } from '../../src/trainer.mjs'
 import { updateNotice } from '../../src/version.mjs'
 import { CARD_WRITTEN_NOTICE } from './constants.mjs'
 import { clampSelection } from './views/helpers.mjs'
-
-const arrivalWording = (where) => {
-  if (where === 'box') return BATTLE_MESSAGES.wentToBox
-
-  return BATTLE_MESSAGES.joinedTeam
-}
-
-const arrivalMessage = (taken, trade) => {
-  const name = displayName(taken.mon).toUpperCase()
-  const from = trade.from.name.toUpperCase()
-
-  return `${name} ${TRADE_MESSAGES.arrivedFrom} ${from}. ${arrivalWording(taken.where)}`
-}
-
-const hatchLines = (mon, where) => {
-  const opening = `${displayName(mon).toUpperCase()} ${DAYCARE_MESSAGES.hatched}`
-
-  if (!mon.shiny) return [opening, arrivalWording(where)]
-
-  return [`${opening} ${BATTLE_MESSAGES.shiny}`, arrivalWording(where)]
-}
-
-const wildIntro = (wild) => {
-  const appeared = `A wild ${displayName(wild).toUpperCase()} appeared!`
-
-  if (!wild.shiny) return [appeared]
-
-  return [appeared, BATTLE_MESSAGES.shiny]
-}
-
-const wildBattle = (save, encounter, lead) => {
-  const wild = createPokemon(
-    encounter.species,
-    encounter.level,
-    makeRng(encounter.seed),
-    encounter.shiny,
-  )
-
-  markFaced(save, encounter.species)
-
-  return {
-    state: createBattle({
-      playerMon: lead,
-      wildMon: wild,
-      seed: encounter.seed,
-    }),
-    intro: wildIntro(wild),
-  }
-}
-
-const encounterTrainer = (trainer) => {
-  return {
-    class: trainer.class,
-    name: trainer.name,
-    sprite: trainer.sprite,
-    prize: trainerClass(trainer.class).prize,
-    team: trainer.team,
-  }
-}
-
-const trainerBattle = (save, opponent, seed, lead) => {
-  const team = opponent.team.map((entry, index) => {
-    return createPokemon(
-      entry.species,
-      entry.level,
-      makeRng((seed + index) >>> 0),
-    )
-  })
-
-  markFaced(save, team[0].species)
-
-  const trainer = {
-    class: opponent.class,
-    name: opponent.name,
-    sprite: opponent.sprite,
-    prize: opponent.prize,
-    team,
-  }
-
-  return {
-    state: createBattle({
-      playerMon: lead,
-      wildMon: team[0],
-      seed,
-      trainer,
-    }),
-    intro: [
-      `${trainerLabel(trainer)} ${TRAINER_MESSAGES.wantsToBattle}`,
-      sentOutLine(trainer, team[0]),
-    ],
-  }
-}
-
-const openingBattle = (save, encounter, lead) => {
-  if (encounter.kind !== 'trainer') return wildBattle(save, encounter, lead)
-
-  return trainerBattle(
-    save,
-    encounterTrainer(encounter.trainer),
-    encounter.seed,
-    lead,
-  )
-}
 
 const layNextEgg = (ctx) => {
   if (!eggFromPair(ctx.save, ctx.rng)) return false

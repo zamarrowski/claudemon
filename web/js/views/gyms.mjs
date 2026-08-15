@@ -7,7 +7,9 @@ import { GYMS_HINTS, GYMS_TITLE, GYM_NOTES } from './constants.mjs'
 import {
   badgeStrip,
   clampSelection,
+  cursorDelta,
   levelRangeLabel,
+  selector,
   typeBadge,
   wrap,
 } from './helpers.mjs'
@@ -50,23 +52,13 @@ export const draw = (ctx) => {
   </div>`
 }
 
-export const select = (ctx, index) => {
-  ctx.gymSelection = index
-  ctx.gymMessage = null
-}
+export const select = selector('gymSelection', 'gymMessage')
 
 export const onKey = (ctx, key) => {
-  if (key.name === 'up' || key.name === 'k') {
-    ctx.gymSelection = wrap(ctx.gymSelection - 1, GYMS.length)
-    ctx.gymMessage = null
-  } else if (key.name === 'down' || key.name === 'j') {
-    ctx.gymSelection = wrap(ctx.gymSelection + 1, GYMS.length)
-    ctx.gymMessage = null
-  } else if (key.name === 'left' || key.name === 'right') {
-    ctx.gymSelection = wrap(
-      ctx.gymSelection + (key.name === 'left' ? -1 : 1),
-      GYMS.length,
-    )
+  const delta = cursorDelta(ctx, key)
+
+  if (delta) {
+    ctx.gymSelection = wrap(ctx.gymSelection + delta, GYMS.length)
     ctx.gymMessage = null
   } else if (key.name === 'enter' || key.name === 'space') {
     ctx.startGymRun(GYMS[ctx.gymSelection].id)

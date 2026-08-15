@@ -15,6 +15,7 @@ import {
   transformResponseSave,
   transformResponseStatus,
   transformResponseTrade,
+  transformResponseUpdateRun,
   transformResponseUpdateState,
   transformResponseWorked,
 } from './transformers.mjs'
@@ -568,6 +569,36 @@ test('Should write the update state with the same three fields', () => {
 
   expect(Object.keys(written).sort()).toEqual(['checkedAt', 'error', 'latest'])
   expect(written.force).toBeUndefined()
+})
+
+test('Should map an update run down to the steps the screen draws, and no run to nothing', () => {
+  const run = transformResponseUpdateRun({
+    kind: 'plugin',
+    state: 'running',
+    from: '1.0.0',
+    to: null,
+    secret: 'x',
+    steps: [
+      {
+        id: 'pull',
+        label: 'Pulling',
+        done: 'Pulled',
+        status: 'ok',
+        detail: null,
+        cmd: 'git',
+      },
+    ],
+  })
+
+  expect(run.secret).toBeUndefined()
+  expect(run.steps[0]).toEqual({
+    id: 'pull',
+    label: 'Pulling',
+    done: 'Pulled',
+    status: 'ok',
+    detail: null,
+  })
+  expect(transformResponseUpdateRun(null)).toBeNull()
 })
 
 test('Should carry a save with no trades yet as an empty list of them', () => {

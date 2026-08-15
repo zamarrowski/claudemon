@@ -1,5 +1,14 @@
 export const APP_TITLE = 'claudemon'
 
+export const CURSOR_DELTAS = {
+  up: -1,
+  k: -1,
+  left: -1,
+  down: 1,
+  j: 1,
+  right: 1,
+}
+
 export const BASE_MENU = [
   { id: 'dex', label: 'POKÉDEX' },
   { id: 'team', label: 'TEAM' },

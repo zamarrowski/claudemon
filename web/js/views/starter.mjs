@@ -8,7 +8,13 @@ import {
   STARTER_HINTS,
   STARTER_PROMPTS,
 } from './constants.mjs'
-import { clampSelection, speciesSprite, typeBadge, wrap } from './helpers.mjs'
+import {
+  clampSelection,
+  cursorDelta,
+  speciesSprite,
+  typeBadge,
+  wrap,
+} from './helpers.mjs'
 
 const nameStep = (ctx) => {
   return html`<section class="field">
@@ -86,12 +92,10 @@ export const onKey = (ctx, key) => {
     return
   }
 
-  if (key.name === 'left') {
-    ctx.setup.selection = wrap(ctx.setup.selection - 1, STARTERS.length)
-    ctx.playSound('cursor')
-  } else if (key.name === 'right') {
-    ctx.setup.selection = wrap(ctx.setup.selection + 1, STARTERS.length)
-    ctx.playSound('cursor')
+  const delta = cursorDelta(ctx, key)
+
+  if (delta) {
+    ctx.setup.selection = wrap(ctx.setup.selection + delta, STARTERS.length)
   } else if (key.name === 'enter' || key.name === 'space') {
     ctx.playSound('select')
     ctx.finishSetup(STARTERS[ctx.setup.selection])

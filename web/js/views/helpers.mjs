@@ -4,7 +4,7 @@ import { sortedPartyEntries } from '../../../src/helpers.mjs'
 import { hasBadge } from '../../../src/state.mjs'
 import { html, raw } from '../dom.mjs'
 import { monSpriteUrl } from '../sprites.mjs'
-import { DEX_SORT, EVOLUTION_WORDING } from './constants.mjs'
+import { CURSOR_DELTAS, DEX_SORT, EVOLUTION_WORDING } from './constants.mjs'
 
 export { sortedPartyEntries }
 
@@ -16,6 +16,24 @@ export const wrap = (index, length) => {
 
 export const clampSelection = (selection, total) => {
   return Math.max(0, Math.min(selection, total - 1))
+}
+
+export const cursorDelta = (ctx, key) => {
+  const delta = CURSOR_DELTAS[key.name]
+
+  if (!delta) return 0
+
+  ctx.playSound('cursor')
+
+  return delta
+}
+
+export const selector = (selectionKey, messageKey) => {
+  return (ctx, index) => {
+    ctx[selectionKey] = index
+
+    if (messageKey) ctx[messageKey] = null
+  }
 }
 
 export const cssColor = ([r, g, b]) => `rgb(${r} ${g} ${b})`

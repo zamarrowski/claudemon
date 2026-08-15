@@ -16,7 +16,9 @@ const stubApi = () => {
     putConfig: vi.fn(),
     dropEncounter: vi.fn(),
     askForCard: vi.fn(),
-    askForTradeCode: vi.fn(),
+    askForTradeCode: vi.fn(() =>
+      Promise.resolve({ code: 'CMON1-abc', path: '/tmp/trade.txt' }),
+    ),
     readTradeCode: vi.fn(),
     startUpdate: vi.fn(),
     quitGame: vi.fn(),
@@ -260,4 +262,48 @@ test('Should use an item on the Pokemon the cursor is on, whatever the sort', ()
     'and that is the one that drank it',
   ).toBeGreaterThan(1)
   expect(ctx.save.party[0].hp).toBe(1)
+})
+
+test('Should say the code is there to copy by hand when the clipboard refuses', async () => {
+  const ctx = aGame()
+
+  vi.stubGlobal('navigator', {
+    clipboard: {
+      writeText: () => Promise.reject(new Error('not allowed')),
+    },
+  })
+
+  ctx.save.party.push(createPokemon(25, 9, makeRng(3)))
+  ctx.askToGiveAway({
+    from: 'team',
+    source: 'party',
+    index: 1,
+    mon: ctx.save.party[1],
+  })
+
+  await ctx.giveSelectedAway()
+
+  expect(ctx.tradeCopied).toBe(false)
+  expect(screen(ctx)).toContain('copy it yourself')
+
+  vi.unstubAllGlobals()
+})
+
+test('Should send a Pokemon taken back from the day care to the box when the team is full', () => {
+  const ctx = aGame()
+
+  for (let extra = 0; extra < 5; extra++)
+    ctx.save.party.push(createPokemon(16, 5, makeRng(extra)))
+
+  ctx.save.box.push(createPokemon(25, 9, makeRng(9)))
+  ctx.openDaycare('home')
+  ctx.leaveAtDaycare('box', 0)
+
+  expect(ctx.save.daycare.slots).toHaveLength(1)
+
+  ctx.takeBackFromDaycare(0)
+
+  expect(ctx.save.box, 'the team had no room for it').toHaveLength(1)
+  expect(ctx.daycareMessage.join(' ')).toMatch(/box/i)
+  expect(screen(ctx)).toContain('Leave two here')
 })

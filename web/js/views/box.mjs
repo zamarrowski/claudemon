@@ -9,10 +9,12 @@ import {
 } from './constants.mjs'
 import {
   clampSelection,
+  cursorDelta,
   hpBar,
   nextPartySort,
   partyEntryAt,
   partySelectionAfterSort,
+  selector,
   sortedPartyEntries,
   wrap,
 } from './helpers.mjs'
@@ -58,10 +60,7 @@ export const draw = (ctx) => {
   </div>`
 }
 
-export const select = (ctx, index) => {
-  ctx.boxSelection = index
-  ctx.boxMessage = null
-}
+export const select = selector('boxSelection', 'boxMessage')
 
 export const onKey = (ctx, key) => {
   if (key.name === 'esc' || key.name === 'q') {
@@ -81,12 +80,10 @@ export const onKey = (ctx, key) => {
 
   const sort = ctx.boxSort
   const total = box.length
+  const delta = cursorDelta(ctx, key)
 
-  if (key.name === 'up' || key.name === 'k') {
-    ctx.boxSelection = wrap(ctx.boxSelection - 1, total)
-    ctx.boxMessage = null
-  } else if (key.name === 'down' || key.name === 'j') {
-    ctx.boxSelection = wrap(ctx.boxSelection + 1, total)
+  if (delta) {
+    ctx.boxSelection = wrap(ctx.boxSelection + delta, total)
     ctx.boxMessage = null
   } else if (key.name === 's') {
     const nextSort = nextPartySort(sort)

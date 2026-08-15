@@ -3,7 +3,7 @@ import { itemsInBag } from '../../../src/shop.mjs'
 import { html } from '../dom.mjs'
 import { hints, monDetail, notes, partyRows, screenHead } from './chrome.mjs'
 import { BAG_TITLE, TEAM_BAG_HINTS } from './constants.mjs'
-import { clampSelection, wrap } from './helpers.mjs'
+import { clampSelection, cursorDelta, selector, wrap } from './helpers.mjs'
 
 export const draw = (ctx) => {
   const bag = itemsInBag(ctx.save)
@@ -42,20 +42,15 @@ export const draw = (ctx) => {
   </div>`
 }
 
-export const select = (ctx, index) => {
-  ctx.bagSelection = index
-  ctx.bagMessage = null
-}
+export const select = selector('bagSelection', 'bagMessage')
 
 export const onKey = (ctx, key) => {
   const bag = itemsInBag(ctx.save)
   const index = clampSelection(ctx.bagSelection, bag.length)
+  const delta = cursorDelta(ctx, key)
 
-  if (key.name === 'up' || key.name === 'k') {
-    ctx.bagSelection = wrap(index - 1, bag.length)
-    ctx.bagMessage = null
-  } else if (key.name === 'down' || key.name === 'j') {
-    ctx.bagSelection = wrap(index + 1, bag.length)
+  if (delta) {
+    ctx.bagSelection = wrap(index + delta, bag.length)
     ctx.bagMessage = null
   } else if (key.name === 'enter' || key.name === 'space') {
     ctx.useFromBag(bag[index])

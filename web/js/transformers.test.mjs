@@ -6,7 +6,6 @@ import {
   transformResponseEncounter,
   transformResponseNotice,
   transformResponseTradeRead,
-  transformResponseUpdateRun,
   transformResponseWorked,
 } from './transformers.mjs'
 
@@ -93,36 +92,6 @@ test('Should fall back to a quiet reading when the server says nothing', () => {
   })
   expect(transformResponseWorked(null)).toEqual({ totalMs: 0, updatedAt: null })
   expect(transformResponseNotice(null)).toBeNull()
-  expect(transformResponseUpdateRun(null)).toBeNull()
-})
-
-test('Should map an update run down to the steps the screen draws', () => {
-  const run = transformResponseUpdateRun({
-    kind: 'plugin',
-    state: 'running',
-    from: '1.0.0',
-    to: null,
-    secret: 'x',
-    steps: [
-      {
-        id: 'pull',
-        label: 'Pulling',
-        done: 'Pulled',
-        status: 'ok',
-        detail: null,
-        cmd: 'git',
-      },
-    ],
-  })
-
-  expect(run.secret).toBeUndefined()
-  expect(run.steps[0]).toEqual({
-    id: 'pull',
-    label: 'Pulling',
-    done: 'Pulled',
-    status: 'ok',
-    detail: null,
-  })
 })
 
 test('Should keep the reason when a trade code will not read', () => {

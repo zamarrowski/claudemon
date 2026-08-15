@@ -10,7 +10,7 @@ import {
   SHOP_OWNED_LABEL,
   SHOP_TITLE,
 } from './constants.mjs'
-import { clampSelection, wrap } from './helpers.mjs'
+import { clampSelection, cursorDelta, selector, wrap } from './helpers.mjs'
 
 export const draw = (ctx) => {
   const selection = clampSelection(ctx.shopSelection, SHOP_STOCK.length)
@@ -44,19 +44,14 @@ export const draw = (ctx) => {
   </div>`
 }
 
-export const select = (ctx, index) => {
-  ctx.shopSelection = index
-  ctx.shopMessage = null
-}
+export const select = selector('shopSelection', 'shopMessage')
 
 export const onKey = (ctx, key) => {
   const total = SHOP_STOCK.length
+  const delta = cursorDelta(ctx, key)
 
-  if (key.name === 'up' || key.name === 'k') {
-    ctx.shopSelection = wrap(ctx.shopSelection - 1, total)
-    ctx.shopMessage = null
-  } else if (key.name === 'down' || key.name === 'j') {
-    ctx.shopSelection = wrap(ctx.shopSelection + 1, total)
+  if (delta) {
+    ctx.shopSelection = wrap(ctx.shopSelection + delta, total)
     ctx.shopMessage = null
   } else if (key.name === 'enter' || key.name === 'space') {
     ctx.buyItem(SHOP_STOCK[ctx.shopSelection], 1)

@@ -15,9 +15,11 @@ import {
 } from './constants.mjs'
 import {
   clampSelection,
+  cursorDelta,
   dexSelectionAfterSort,
   evolutionWording,
   nextDexSort,
+  selector,
   sortedDex,
   speciesSprite,
   typeBadge,
@@ -140,21 +142,13 @@ export const draw = (ctx) => {
   </div>`
 }
 
-export const select = (ctx, index) => {
-  ctx.dexSelection = index
-}
+export const select = selector('dexSelection')
 
 export const onKey = (ctx, key) => {
   const total = loadData().pokedex.length
+  const delta = cursorDelta(ctx, key)
 
-  if (key.name === 'up' || key.name === 'k')
-    ctx.dexSelection = wrap(ctx.dexSelection - 1, total)
-  else if (key.name === 'down' || key.name === 'j')
-    ctx.dexSelection = wrap(ctx.dexSelection + 1, total)
-  else if (key.name === 'left')
-    ctx.dexSelection = wrap(ctx.dexSelection - 1, total)
-  else if (key.name === 'right')
-    ctx.dexSelection = wrap(ctx.dexSelection + 1, total)
+  if (delta) ctx.dexSelection = wrap(ctx.dexSelection + delta, total)
   else if (key.name === 'pageup')
     ctx.dexSelection = Math.max(0, ctx.dexSelection - DEX_PAGE_STEP)
   else if (key.name === 'pagedown')

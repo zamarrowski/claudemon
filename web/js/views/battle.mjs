@@ -19,6 +19,7 @@ import {
 } from './constants.mjs'
 import {
   clampSelection,
+  cursorDelta,
   hpBar,
   monSprite,
   typeBadge,
@@ -313,14 +314,9 @@ export const onKey = (ctx, key) => {
   }
 
   const options = menuLength(ctx)
+  const delta = cursorDelta(ctx, key)
 
-  if (key.name === 'up') battle.selection = wrap(battle.selection - 1, options)
-  else if (key.name === 'down')
-    battle.selection = wrap(battle.selection + 1, options)
-  else if (key.name === 'left')
-    battle.selection = wrap(battle.selection - 1, options)
-  else if (key.name === 'right')
-    battle.selection = wrap(battle.selection + 1, options)
+  if (delta) battle.selection = wrap(battle.selection + delta, options)
   else if (key.name === 'enter' || key.name === 'space')
     ctx.chooseBattleOption()
   else if (key.name === 'esc') ctx.backOutOfBattleMenu()

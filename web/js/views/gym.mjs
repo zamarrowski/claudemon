@@ -19,7 +19,14 @@ import {
   GYM_ROSTER_PANEL_TITLE,
   GYM_TITLE_SUFFIX,
 } from './constants.mjs'
-import { levelRangeLabel, partyEntryAt, typeBadge, wrap } from './helpers.mjs'
+import {
+  cursorDelta,
+  levelRangeLabel,
+  partyEntryAt,
+  selector,
+  typeBadge,
+  wrap,
+} from './helpers.mjs'
 
 const rosterRows = (run) => {
   const gym = gymOf(run)
@@ -90,9 +97,7 @@ export const draw = (ctx) => {
   </div>`
 }
 
-export const select = (ctx, index) => {
-  ctx.teamSelection = index
-}
+export const select = selector('teamSelection')
 
 export const onKey = (ctx, key) => {
   const total = ctx.save.party.length
@@ -111,10 +116,9 @@ export const onKey = (ctx, key) => {
   ctx.gymMessage = null
   ctx.bagMessage = null
 
-  if (key.name === 'up' || key.name === 'k')
-    ctx.teamSelection = wrap(ctx.teamSelection - 1, total)
-  else if (key.name === 'down' || key.name === 'j')
-    ctx.teamSelection = wrap(ctx.teamSelection + 1, total)
+  const delta = cursorDelta(ctx, key)
+
+  if (delta) ctx.teamSelection = wrap(ctx.teamSelection + delta, total)
   else if (key.name === 'enter' || key.name === 'space') ctx.startGymBattle()
   else if (key.name === 'i') ctx.openBag(selected.index)
   else if (key.name === 'l') ctx.makeLead(selected.index)

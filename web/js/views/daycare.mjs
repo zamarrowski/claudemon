@@ -16,7 +16,7 @@ import {
   EMPTY_SLOT_LABEL,
   FROM_BOX_TAG,
 } from './constants.mjs'
-import { clampSelection, wrap } from './helpers.mjs'
+import { clampSelection, cursorDelta, wrap } from './helpers.mjs'
 
 const slotRows = (ctx) => {
   const slots = ctx.save.daycare.slots
@@ -131,16 +131,11 @@ const onPickKey = (ctx, key) => {
   }
 
   const candidates = daycareCandidates(ctx.save)
+  const delta = cursorDelta(ctx, key)
 
-  if (key.name === 'up' || key.name === 'k') {
+  if (delta) {
     ctx.daycarePickSelection = wrap(
-      ctx.daycarePickSelection - 1,
-      candidates.length,
-    )
-    ctx.daycareMessage = null
-  } else if (key.name === 'down' || key.name === 'j') {
-    ctx.daycarePickSelection = wrap(
-      ctx.daycarePickSelection + 1,
+      ctx.daycarePickSelection + delta,
       candidates.length,
     )
     ctx.daycareMessage = null
@@ -158,11 +153,10 @@ const onSlotsKey = (ctx, key) => {
     return
   }
 
-  if (key.name === 'up' || key.name === 'k') {
-    ctx.daycareSelection = wrap(ctx.daycareSelection - 1, DAYCARE_LIMIT)
-    ctx.daycareMessage = null
-  } else if (key.name === 'down' || key.name === 'j') {
-    ctx.daycareSelection = wrap(ctx.daycareSelection + 1, DAYCARE_LIMIT)
+  const delta = cursorDelta(ctx, key)
+
+  if (delta) {
+    ctx.daycareSelection = wrap(ctx.daycareSelection + delta, DAYCARE_LIMIT)
     ctx.daycareMessage = null
   } else if (key.name === 'enter' || key.name === 'space') {
     if (ctx.save.daycare.slots[ctx.daycareSelection]) {

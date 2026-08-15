@@ -26,7 +26,14 @@ import {
   UPDATE_NOTICES,
   WALK_HINTS,
 } from './constants.mjs'
-import { clampSelection, hpBar, speciesSprite, wrap } from './helpers.mjs'
+import {
+  clampSelection,
+  cursorDelta,
+  hpBar,
+  selector,
+  speciesSprite,
+  wrap,
+} from './helpers.mjs'
 
 export const menuItems = (ctx) => {
   const base = isWorking(ctx.activity)
@@ -214,9 +221,7 @@ export const draw = (ctx) => {
   </div>`
 }
 
-export const select = (ctx, index) => {
-  ctx.homeSelection = index
-}
+export const select = selector('homeSelection')
 
 export const onKey = (ctx, key) => {
   if (key.name === 'u' && ctx.updateNotice?.kind === 'available') {
@@ -228,12 +233,10 @@ export const onKey = (ctx, key) => {
 
   ctx.homeSelection = clampSelection(ctx.homeSelection, items.length)
 
-  if (key.name === 'left' || key.name === 'right') {
-    ctx.homeSelection = wrap(
-      ctx.homeSelection + (key.name === 'left' ? -1 : 1),
-      items.length,
-    )
-    ctx.playSound('cursor')
+  const delta = cursorDelta(ctx, key)
+
+  if (delta) {
+    ctx.homeSelection = wrap(ctx.homeSelection + delta, items.length)
   } else if (key.name === 'enter' || key.name === 'space') {
     const item = items[ctx.homeSelection]
 
