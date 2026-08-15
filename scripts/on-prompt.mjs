@@ -1,8 +1,8 @@
-import { beginTurn } from '../src/activity.mjs'
-import { loadConfig } from '../src/config.mjs'
+import { beginTurn } from '../src/node/sessions.mjs'
+import { loadConfig } from '../src/node/config.mjs'
 import { stepsFromPrompt } from '../src/encounter.mjs'
-import { logError, logNote } from '../src/log.mjs'
-import { relinkLaunchers } from '../src/shim.mjs'
+import { logError, logNote } from '../src/node/log.mjs'
+import { relinkLaunchers } from '../src/node/shim.mjs'
 import { readStdin } from './stdin.mjs'
 import { transformResponsePromptEvent } from './transformers.mjs'
 

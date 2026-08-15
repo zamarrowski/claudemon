@@ -8,8 +8,7 @@ say "Closes #123". -->
 ## How to see it
 
 <!-- The steps to reach the change: which screen, which keys, which state.
-For anything visual, paste a screenshot — `node tools/preview.mjs <scene>`
-renders any screen straight to the terminal. -->
+For anything visual, paste a screenshot of the browser tab. -->
 
 ## Checklist
 

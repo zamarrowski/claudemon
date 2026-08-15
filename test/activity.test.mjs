@@ -11,6 +11,7 @@ const sandbox = mkdtempSync(join(tmpdir(), 'claudemon-activity-'))
 process.env.CLAUDEMON_HOME = sandbox
 
 const { STALE_MS } = await import('../src/constants.mjs')
+const { summariseActivity } = await import('../src/activity.mjs')
 const {
   beginTurn,
   endSession,
@@ -20,11 +21,9 @@ const {
   pruneSessions,
   readActivity,
   readSessions,
-  summariseActivity,
   writeActivity,
-} = await import('../src/activity.mjs')
-const { stripAnsi } = await import('../src/ui/text.mjs')
-const { activityRow } = await import('../src/ui/views/home.mjs')
+} = await import('../src/node/sessions.mjs')
+const { stripAnsi } = await import('../src/node/text.mjs')
 
 const freshHome = () => mkdtempSync(join(tmpdir(), 'claudemon-home-'))
 
@@ -766,59 +765,16 @@ test('Should read sessions back freshest first and prune the ancient ones', () =
     live.map((entry) => entry.session),
     'the old one is already stale',
   ).toEqual(['newest', 'recent'])
+  writeFileSync(join(sandbox, 'sessions', 'notes.txt'), 'not a session')
+
   expect(pruneSessions(now), 'and gets deleted').toBe(1)
+  expect(
+    readFileSync(join(sandbox, 'sessions', 'notes.txt'), 'utf8'),
+    'anything that is not a session is left alone',
+  ).toBe('not a session')
   expect(readActivity('old')).toBeNull()
 
   for (const id of ['recent', 'newest']) endSession(id)
-})
-
-test('Should say nothing in the activity row when nothing is reporting', () => {
-  expect(
-    activityRow({ state: 'unknown', tool: null, since: null, sessions: 0 }),
-  ).toBe('')
-  expect(activityRow(null)).toBe('')
-})
-
-test('Should name the tool in the activity row and how long Claude has been at it', () => {
-  const now = Date.now()
-  const row = activityRow(
-    { state: 'working', tool: 'Bash', since: now - 74_000, sessions: 1 },
-    now,
-  )
-
-  expect(row).toMatch(/Claude is working/)
-  expect(row).toMatch(/Bash/)
-  expect(row).toMatch(/1m14s/)
-})
-
-test('Should shout in the activity row when Claude is blocked on you', () => {
-  const now = Date.now()
-  const row = activityRow(
-    { state: 'waiting', tool: null, since: now, sessions: 1 },
-    now,
-  )
-
-  expect(row).toMatch(/needs you/)
-})
-
-test('Should call the activity row idle once Claude has stopped', () => {
-  const now = Date.now()
-  const row = activityRow(
-    { state: 'idle', tool: null, since: now, sessions: 1 },
-    now,
-  )
-
-  expect(row).toMatch(/idle/)
-})
-
-test('Should count a second busy tab rather than hide it', () => {
-  const now = Date.now()
-  const row = activityRow(
-    { state: 'working', tool: 'Edit', since: now, sessions: 3 },
-    now,
-  )
-
-  expect(row).toMatch(/\+2/)
 })
 
 const cleanUpSandbox = () => rmSync(sandbox, { recursive: true, force: true })

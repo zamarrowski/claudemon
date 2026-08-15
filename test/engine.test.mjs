@@ -7,14 +7,14 @@ import { SHINY_ODDS, TRAINER_MESSAGES } from '../src/constants.mjs'
 import { statsAtLevel } from '../src/stats.mjs'
 import { attemptCatch, catchValue } from '../src/capture.mjs'
 import {
+  canEvolveByStone,
   createPokemon,
   displayName,
   evolveInto,
   genderOf,
   levelOf,
-  makeMoveSlot,
-  canEvolveByStone,
   levelUpEvolution,
+  makeMoveSlot,
   pendingEvolution,
   refreshStats,
   rollShiny,

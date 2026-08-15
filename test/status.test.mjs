@@ -11,9 +11,9 @@ import { expect, test } from 'vitest'
 
 process.env.CLAUDEMON_HOME = mkdtempSync(join(tmpdir(), 'claudemon-status-'))
 
-const { HOME, STATUS_FILE } = await import('../src/paths.mjs')
+const { HOME, STATUS_FILE } = await import('../src/node/paths.mjs')
 const { companionIsLive, readStatus, writeStatus } =
-  await import('../src/status.mjs')
+  await import('../src/node/status.mjs')
 
 const clearStatus = () => {
   try {

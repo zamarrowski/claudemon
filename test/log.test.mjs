@@ -5,8 +5,8 @@ import { expect, test, vi } from 'vitest'
 
 process.env.CLAUDEMON_HOME = mkdtempSync(join(tmpdir(), 'claudemon-log-'))
 
-const { LOG_FILE } = await import('../src/paths.mjs')
-const { logError, logNote } = await import('../src/log.mjs')
+const { LOG_FILE } = await import('../src/node/paths.mjs')
+const { logError, logNote } = await import('../src/node/log.mjs')
 
 const readLog = () => {
   try {
@@ -73,7 +73,7 @@ test('Should swallow a log that cannot be written rather than throwing', async (
 
   vi.resetModules()
 
-  const fresh = await import('../src/log.mjs')
+  const fresh = await import('../src/node/log.mjs')
 
   expect(() => fresh.logNote('somewhere', 'into a wall')).not.toThrow()
   expect(() => fresh.logError('somewhere', new Error('unheard'))).not.toThrow()

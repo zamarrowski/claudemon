@@ -48,13 +48,13 @@ body:
       required: true
 
   - type: input
-    id: terminal
+    id: browser
     attributes:
-      label: Terminal and OS
+      label: Browser and OS
       description: |
-        For anything about colours, sprite size or layout, `node tools/probe-terminal.mjs`
-        prints what it detects — paste that instead.
-      placeholder: 'Ghostty on macOS 15.2'
+        For anything about colours, sprite size or layout, the browser and its
+        version are what matter.
+      placeholder: 'Safari 18 on macOS 15.2'
     validations:
       required: true
 

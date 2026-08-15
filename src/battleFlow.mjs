@@ -1,9 +1,10 @@
 import { isWorking } from './activity.mjs'
-import { sendOutAfterFaint, submitAction, switchIn } from './battle.mjs'
+import { sendOutAfterFaint, switchIn } from './battle.mjs'
 import {
   BATTLE_ITEM_KINDS,
   BATTLE_MESSAGES,
   GYM_MESSAGES,
+  HIT_FRAME_COUNT,
   HP_DRAIN_STEPS,
   ITEMS,
 } from './constants.mjs'
@@ -19,16 +20,18 @@ import {
   markFaced,
   setLead,
 } from './state.mjs'
-import { ballSteps } from './ui/ball.mjs'
-import { HIT_FRAMES } from './ui/constants.mjs'
+import { ballSteps } from './ballThrow.mjs'
 import { isMoveDisabled } from './volatile.mjs'
 
 const liveHp = (state) => {
   return { player: state.player.mon.hp, foe: state.foe.mon.hp }
 }
 
-export const createBattleFlow = (state) => {
+export const createBattleFlow = (session) => {
+  const state = session.state
+
   return {
+    session,
     state,
     foeMon: state.foe.mon,
     trainerIntro: state.trainer?.sprite != null,
@@ -193,7 +196,7 @@ export const tickBattle = (ctx) => {
     const next = battle.effect.frame + 1
 
     battle.effect =
-      next < HIT_FRAMES.length ? { ...battle.effect, frame: next } : null
+      next < HIT_FRAME_COUNT ? { ...battle.effect, frame: next } : null
 
     moved = true
   }
@@ -396,7 +399,7 @@ const takeAction = (ctx, action, silentFirst = false) => {
 
   battle.menu = null
 
-  queueEvents(ctx, submitAction(battle.state, action))
+  queueEvents(ctx, battle.session.submit(action))
 
   if (battle.state.over) beginPostBattle(ctx)
   else if (!battle.message && !silentFirst) openMenu(battle, 'main')
@@ -553,7 +556,6 @@ const finishBattle = (ctx) => {
 
   ctx.persist()
 
-  ctx.pump()
   ctx.homeSelection = 0
   ctx.setMode('home')
 }

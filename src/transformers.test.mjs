@@ -353,7 +353,7 @@ test('Should write a session entry with the same fields it is read with', () => 
   expect(written.hookEventName).toBeUndefined()
 })
 
-test('Should map the eleven config keys the game reads and drop anything else', () => {
+test('Should map the ten config keys the game reads and drop anything else', () => {
   const config = transformResponseConfig({
     encounterChance: 0.5,
     charsPerStep: 10,
@@ -363,7 +363,6 @@ test('Should map the eleven config keys the game reads and drop anything else', 
     bell: false,
     updateCheck: 'launch',
     encounterTtlSeconds: 60,
-    spriteScale: 0.6,
     wrappedStatusLine: 'echo hi',
     probeRows: 3,
     theme: 'dark',
@@ -378,7 +377,6 @@ test('Should map the eleven config keys the game reads and drop anything else', 
     bell: false,
     updateCheck: 'launch',
     encounterTtlSeconds: 60,
-    spriteScale: 0.6,
     wrappedStatusLine: 'echo hi',
     probeRows: 3,
   })

@@ -30,8 +30,10 @@ machine.
 </tr>
 </table>
 
-It lives in a terminal tab of its own, next to the one you work in. The status line
-in Claude tells you something is waiting; the game tab is where you go and fight it.
+It lives in a browser tab of its own, next to the one you work in. `claudemon` starts
+a small server on your machine and opens the game in your browser — nothing is hosted
+anywhere, and nothing leaves the machine. The status line in Claude tells you
+something is waiting; the game tab is where you go and fight it.
 
 ```
 ┌─ Terminal 1: claude ──────────────────────────────────┐
@@ -66,7 +68,8 @@ prints a line per step and says so if one of them did not work.
 Then two one-offs, which it reminds you of:
 
 1. **Restart Claude Code** once more, so the new status line loads.
-2. In a **second terminal tab**, run `claudemon`.
+2. Run `claudemon` in a terminal. It serves the game on `127.0.0.1` and opens it in
+   your browser; leave that terminal running while you play, and Ctrl-C closes it.
 
 It asks for a name and a starter the first time, and after that it sits there
 waiting. Send a longish prompt in the Claude tab and watch the status line.
@@ -77,11 +80,7 @@ waiting. Send a longish prompt in the Claude tab and watch the status line.
 |---|---|
 | **Claude Code** | You are already in it |
 | **Node.js 20.19 or newer** | `node --version`. The game and the hooks run on it, and Claude Code ships as its own binary so it does not bring one. Nothing else to install — no dependencies, no build step |
-| **A terminal with truecolor** | iTerm2, Ghostty, WezTerm, Kitty, Alacritty and VS Code's terminal are all fine. Not macOS Terminal |
-
-> [!WARNING]
-> In macOS Terminal the sprites come out striped and stretched, and no setting fixes
-> it. Use any of the other terminals above.
+| **A browser from this decade** | Anything that speaks ES modules and server-sent events: Chrome, Safari, Firefox, Edge |
 
 The 151 Pokemon ship with the plugin, so the only thing the install downloads is the
 sprites, which takes a few seconds. After that the only thing that ever goes out is
@@ -192,7 +191,9 @@ carry.
 ## Controls
 
 Arrow keys move, `enter` confirms, `esc` goes back, `q` quits. Any key advances a
-battle message. That is the whole scheme — it is the same everywhere.
+battle message. That is the whole scheme — it is the same everywhere. Everything you
+can reach with a key you can also click, which is the one thing the browser gives you
+that a terminal did not.
 
 | Screen | What it does |
 |---|---|
@@ -222,7 +223,7 @@ battle message. That is the whole scheme — it is the same everywhere.
 
 ## The trainer card
 
-`s` on the **TRAINER** screen, or `claudemon card` from a terminal: your six drawn to
+`s` on the **TRAINER** screen, or `claudemon card` in a terminal: your six drawn to
 `~/.claudemon/card.png`, with your badges, your achievements and the hours Claude has
 worked while you played, opened in whatever shows PNGs on your desktop. There is more
 about it, and a picture of one, [on the site](https://zamarrowski.github.io/claudemon/#card).
@@ -318,7 +319,7 @@ One egg at a time, and taking a parent back does not take the egg with it.
 - Eight gyms, one per type and ordered by difficulty, each a run of two trainers
   and then the leader with no way back to the menu in between. No shop and no rest
   in there: the potions you walk in with are the potions you get. Beat the leader
-  and the badge is yours; lose, walk out or close the terminal and the whole run is
+  and the badge is yours; lose, walk out or close the game and the whole run is
   undone — the experience, the money, the potions and the bruises, as if you had
   never gone in.
 - A line telling you whether Claude is working, which tool it is on and for how

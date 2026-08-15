@@ -1,27 +1,51 @@
 export const CRIT_CHANCE = 1 / 16
+
 export const HIGH_CRIT_CHANCE = 1 / 8
+
 export const SLEEP_WAKE_CHANCE = 1 / 3
+
 export const THAW_CHANCE = 0.2
+
 export const PARALYSIS_SKIP_CHANCE = 0.25
+
 export const CRIT_MULTIPLIER = 1.5
+
 export const STAB_MULTIPLIER = 1.5
+
 export const STAGE_LIMIT = 6
+
 export const STRUGGLE_RECOIL_FRACTION = 4
+
 export const DAMAGE_VARIANCE = { min: 217, max: 255 }
+
 export const POISON_FRACTIONS = { poison: 8, burn: 16 }
+
 export const SLEEP_TURNS = { min: 1, max: 3 }
+
 export const CONFUSION_TURNS = { min: 2, max: 5 }
+
 export const CONFUSION_SELF_HIT_CHANCE = 0.5
+
 export const CONFUSION_SELF_HIT_POWER = 40
+
 export const TRAP_TURNS = { min: 2, max: 5 }
+
 export const TRAP_FRACTION = 16
+
 export const DISABLE_TURNS = { min: 2, max: 5 }
+
 export const LEECH_SEED_FRACTION = 8
+
 export const FALLBACK_POWER = { 'low-kick': 50 }
+
 export const RUN_ODDS = { max: 0.95, speedFactor: 0.5, perAttempt: 0.15 }
+
 export const FOE_AI_SCORES = { defaultPower: 40, status: 15, selfKo: 0 }
+
 export const FOE_AI_SELF_KO_HP_RATIO = 0.3
+
 export const OHKO_MOVES = new Set(['guillotine', 'horn-drill', 'fissure'])
+
 export const SELF_KO_MOVES = new Set(['self-destruct', 'explosion'])
 
 export const UNSUPPORTED_MOVES = new Set([
@@ -152,12 +176,19 @@ export const BALLS = {
 }
 
 export const MAX_LEVEL = 100
+
 export const MOVE_LIMIT = 4
+
 export const IV_MAX = 31
+
 export const SHINY_ODDS = 1 / 4096
+
 export const EGG_SHINY_ODDS = 1 / 512
+
 export const EXP_DIVISOR = 7
+
 export const MONEY_PER_LEVEL = 12
+
 export const MONEY_JITTER_PER_LEVEL = 4
 
 export const STAT_NAMES = [
@@ -282,16 +313,27 @@ export const ITEMS = {
 }
 
 export const SAVE_VERSION = 1
+
 export const PARTY_LIMIT = 6
+
 export const DAYCARE_LIMIT = 2
+
 export const DAYCARE_EXP_PER_STEP = 8
+
 export const DITTO_ID = 132
+
 export const EGG_LEVEL = 5
+
 export const EGG_STEPS = 600
+
 export const PAIRED_EGG_LINES = { 29: 32, 32: 29 }
+
 export const STARTER_LEVEL = 5
+
 export const STARTING_MONEY = 3000
+
 export const STARTERS = [1, 4, 7]
+
 export const STARTING_BAG = { 'poke-ball': 5, potion: 3 }
 
 export const EMPTY_STATS = {
@@ -414,9 +456,6 @@ export const ACHIEVEMENTS = [
   },
 ]
 
-export const SPRITE_SCALE_MIN = 0.4
-export const SPRITE_SCALE_MAX = 1
-
 export const DEFAULT_CONFIG = {
   encounterChance: 0.12,
 
@@ -436,27 +475,25 @@ export const DEFAULT_CONFIG = {
 
   encounterTtlSeconds: 30,
 
-  spriteScale: 1,
-
   wrappedStatusLine: null,
 
   probeRows: null,
 }
 
 export const HOUR_MS = 60 * 60_000
+
 export const DAY_MS = 24 * 60 * 60_000
 
-export const EMPTY_WORKED = { totalMs: 0, updatedAt: null }
-
 export const STALE_MS = 30 * 60_000
-export const PRUNE_MS = 24 * 60 * 60_000
-export const WAITING_MESSAGE_LIMIT = 120
+
 export const ACTIVITY_PRIORITY = ['waiting', 'working', 'idle']
-export const ACTIVITY_VERSION = 1
 
 export const LEGENDARY_LEVEL_GATE = 40
+
 export const DEFAULT_CAPTURE_RATE = 45
+
 export const STAGE_LEVEL_GATES = { 1: 16, 2: 32 }
+
 export const ENCOUNTER_VERSION = 1
 
 export const WILD_LEVEL_SPREAD = {
@@ -476,6 +513,7 @@ export const TRAINER_LEVEL_SPREAD = {
 }
 
 export const TRAINER_LEVELS_PER_MON = 12
+
 export const TRAINER_EXP_BONUS = 1.5
 
 export const TRAINER_CLASSES = [
@@ -892,20 +930,6 @@ export const FALLBACK_SPECIES = [
   { id: 143, name: 'Snorlax', weight: 1 },
 ]
 
-export const SAMPLE_RATE = 22050
-export const FADE_MS = 2
-export const MIN_GAP_MS = 45
-export const MAX_IN_FLIGHT = 3
-export const MIN_LOOP_MS = 500
-export const INT16_MAX = 32767
-export const WAV_HEADER_BYTES = 44
-export const WAV_RIFF_OVERHEAD_BYTES = 36
-export const WAV_FMT_CHUNK_BYTES = 16
-export const WAV_PCM_FORMAT = 1
-export const WAV_CHANNELS = 1
-export const WAV_BYTES_PER_SAMPLE = 2
-export const WAV_BITS_PER_SAMPLE = 16
-
 export const SOUNDS = {
   cursor: { gain: 0.16, notes: [{ hz: 1175, ms: 16 }] },
 
@@ -954,79 +978,18 @@ export const SOUNDS = {
   },
 }
 
-export const HEARTBEAT_STALE_MS = 15_000
-
-export const CHECK_INTERVAL_MS = 24 * 60 * 60 * 1000
-export const FETCH_TIMEOUT_MS = 5000
-export const UPDATE_DETAIL_LIMIT = 120
-
-export const DEFAULT_MANIFEST_URL =
-  'https://raw.githubusercontent.com/zamarrowski/claudemon/main/.claude-plugin/plugin.json'
-
-export const UPDATE_STEP_TIMEOUTS = {
-  pull: 60_000,
-  install: 180_000,
-  marketplace: 60_000,
-  plugin: 120_000,
-}
-
-export const UPDATE_STEP_TEXT = {
-  clonePull: {
-    id: 'pull',
-    label: 'pulling the latest commit',
-    done: 'pulled the latest commit',
-  },
-  cloneInstall: {
-    id: 'install',
-    label: 'reinstalling from the clone',
-    done: 'the command, status line and sprites are up to date',
-  },
-  marketplace: {
-    id: 'marketplace',
-    label: 'refreshing the marketplace',
-    done: 'refreshed the marketplace',
-  },
-  plugin: {
-    id: 'plugin',
-    label: 'fetching the new version',
-    done: 'fetched the new version',
-  },
-  pluginInstall: {
-    id: 'install',
-    label: 'checking the command, status line and sprites',
-    done: 'the command, status line and sprites are up to date',
-  },
-}
-
-export const UPDATE_FAILURE_MESSAGES = {
-  noGit: 'no `git` command found',
-  noClaude: 'no `claude` command found — is Claude Code on your PATH?',
-  timedOut: 'it took too long and was given up on',
-  unknown: 'it failed without saying why',
-}
-
-export const PNG_CHANNELS = { 0: 1, 2: 3, 3: 1, 4: 2, 6: 4 }
-
-export const PNG_SIGNATURE_BYTES = [
-  0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
-]
-
-export const PNG_CRC_POLYNOMIAL = 0xedb88320
-export const PNG_CRC_SEED = 0xffffffff
-export const PNG_BIT_DEPTH = 8
-export const PNG_COLOR_TYPE_RGBA = 6
-export const PNG_FILTER_NONE = 0
-
-export const SHIM_MARKER = "Generated by claudemon's installer"
-export const SHIM_APP_PATTERN = /^app="(.+)"$/m
-
 export const MOVE_SLOTS_FULL_LINE = 'but it already knows four moves.'
 
 export const HP_DRAIN_STEPS = 24
+
 export const FRAMES_PER_STEP = 2
+
 export const FRAMES_PER_SPIN = 3
+
 export const FRAMES_PER_DAYCARE_STEP = 100
+
 export const DAYCARE_STEPS_PER_SAVE = 10
+
 export const BATTLE_ITEM_KINDS = new Set(['heal', 'cure', 'revive'])
 
 export const HOME_NOTICES = {
@@ -1086,36 +1049,37 @@ export const BATTLE_MESSAGES = {
 }
 
 export const HEARTBEAT_MS = 5000
+
 export const POLL_MS = 2000
+
 export const UPDATE_POLL_MS = 60_000
+
 export const TICK_MS = 500
+
 export const FRAME_MS = 60
+
 export const DATASET_MISSING_MESSAGE = 'The Pokemon dataset is missing.'
+
 export const DATASET_MISSING_HINT =
   'Run: node tools/fetch-data.mjs  (and node tools/fetch-sprites.mjs)'
 
 export const CARD_NO_SAVE_MESSAGE = 'There is no save to make a card from yet.'
+
 export const CARD_NO_SAVE_HINT =
   'Run claudemon, pick a starter, then try again.'
+
 export const CARD_WRITTEN_PREFIX = 'Trainer card written to '
+
 export const CARD_OUT_FLAG = '--out'
+
 export const CARD_NO_OPEN_FLAG = '--no-open'
 
-export const REVEAL_COMMANDS = {
-  darwin: { command: 'open', args: (path) => [path] },
-  win32: { command: 'explorer.exe', args: (path) => [path] },
-  default: { command: 'xdg-open', args: (path) => [path] },
-}
-
-export const CLIPBOARD_COMMANDS = {
-  darwin: { command: 'pbcopy', args: [] },
-  win32: { command: 'clip', args: [] },
-  default: { command: 'xclip', args: ['-selection', 'clipboard'] },
-}
-
 export const TRADE_VERSION = 1
+
 export const TRADE_CODE_PREFIX = 'CMON1-'
+
 export const TRADE_ID_RADIX = 36
+
 export const TRADE_CODE_PATTERN = /[^A-Za-z0-9._-]/g
 
 export const TRADE_MESSAGES = {
@@ -1126,3 +1090,40 @@ export const TRADE_MESSAGES = {
   ownGame: 'That one came out of your own game. A trade only goes one way.',
   alreadyTaken: 'You have already taken that one in.',
 }
+
+export const KANTO_TOTAL = 151
+
+export const TYPE_COLORS = {
+  normal: [168, 168, 120],
+  fire: [240, 128, 48],
+  water: [104, 144, 240],
+  electric: [248, 208, 48],
+  grass: [120, 200, 80],
+  ice: [152, 216, 216],
+  fighting: [192, 48, 40],
+  poison: [160, 64, 160],
+  ground: [224, 192, 104],
+  flying: [168, 144, 240],
+  psychic: [248, 88, 136],
+  bug: [168, 184, 32],
+  rock: [184, 160, 56],
+  ghost: [112, 88, 152],
+  dragon: [112, 56, 248],
+  dark: [112, 88, 72],
+  steel: [184, 184, 208],
+  fairy: [238, 153, 172],
+}
+
+export const DEFAULT_TYPE_COLOR = [136, 136, 136]
+
+export const DATA_NOT_LOADED = 'the dataset has not been loaded'
+
+export const THROW_FRAMES = 8
+export const FALL_FRAMES = 3
+export const SHAKE_TILTS = [-1, 0, 1, 0]
+export const BURST_SPREADS = 3
+export const HIT_FRAME_COUNT = 5
+
+export const SERVING_PREFIX = 'Playing at '
+
+export const SERVING_HINT = 'Ctrl-C here closes the game.'

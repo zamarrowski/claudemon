@@ -17,19 +17,19 @@ import {
   SPRITES_DIR,
   shinySpriteFile,
   trainerSpriteFile,
-} from '../src/paths.mjs'
+} from '../src/node/paths.mjs'
 import { TRAINER_CLASSES } from '../src/constants.mjs'
-import { loadConfig, saveConfig } from '../src/config.mjs'
-import { isDataReady } from '../src/data.mjs'
-import { LAUNCHERS, writeLauncher } from '../src/shim.mjs'
-import { VERSION } from '../src/version.mjs'
+import { loadConfig, saveConfig } from '../src/node/config.mjs'
+import { datasetIsReady } from '../src/node/dataset.mjs'
+import { LAUNCHERS, writeLauncher } from '../src/node/shim.mjs'
+import { VERSION } from '../src/node/version.mjs'
 import {
   bold,
-  dim,
   brightGreen,
   brightRed,
   brightYellow,
-} from '../src/ui/ansi.mjs'
+  dim,
+} from '../src/node/ansi.mjs'
 import {
   transformRequestWriteSettings,
   transformResponseSettings,
@@ -309,7 +309,7 @@ if (uninstalling) {
   installCommand()
   installStatusLine()
 
-  const dataOk = isDataReady()
+  const dataOk = datasetIsReady()
 
   if (dataOk) step('dataset ready')
   else fail(`the dataset is missing — run ${bold('node tools/fetch-data.mjs')}`)
@@ -331,7 +331,9 @@ if (uninstalling) {
   console.log(
     `  1. Restart Claude Code, so the hooks and the status line load.`,
   )
-  console.log(`  2. In a second terminal tab, run  ${bold('claudemon')}`)
+  console.log(
+    `  2. Run  ${bold('claudemon')}  — it serves the game and opens it in your browser`,
+  )
   console.log(
     `\n  ${dim(`Undo all of it with: node tools/install.mjs --uninstall`)}\n`,
   )

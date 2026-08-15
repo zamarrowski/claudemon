@@ -2,8 +2,10 @@
 
 This document provides instructions for AI agents working on the claudemon codebase.
 
-claudemon is a terminal Pokémon game driven by Claude Code activity: plain ESM Node,
-no build step, no runtime dependencies, rendered as ANSI lines into a terminal.
+claudemon is a Pokémon game driven by Claude Code activity. `claudemon` starts a
+local Node server and opens the game in a browser tab: plain ESM everywhere, no build
+step, no runtime dependencies, no framework — the browser loads the same `.mjs` files
+that are on disk.
 
 These rules are the house style. Where existing code contradicts them, the existing
 code is wrong and gets brought in line as it is touched — do NOT copy a violation
@@ -13,19 +15,46 @@ against a rule here.
 ## Project shape
 
 ```
-bin/claudemon        entry point, argument parsing, boot
-src/                 the engine (battle, capture, exp, state, queue, sound, update)
-src/ui/              rendering primitives (screen, ansi, sprite, grass, widgets)
-src/ui/views/        one file per screen, each exporting draw() and onKey()
+bin/claudemon        entry point: parse arguments, boot the server, open the browser
+server/              the local HTTP server: static files, JSON API, SSE stream
+src/                 the engine — runs in BOTH the browser and Node
+src/node/            everything that touches the machine (fs, child_process, zlib)
+web/                 the client: index.html, styles/, js/
+web/js/views/        one file per screen, each exporting draw() and onKey()
 scripts/             Claude Code hook handlers and the status line
-tools/               dev-time scripts (fetch data, fetch sprites, preview, install)
-test/                test suites
+tools/               dev-time scripts (fetch data, fetch sprites, install)
+test/                cross-cutting suites (hooks, status line, paths, engine)
 data/                generated dataset, checked in — never hand-edited
 ```
 
 Everything is ESM, `.mjs`, Node >= 20.19. The runner is Vitest. Prettier owns
 formatting (no semicolons, single quotes, 80 columns) — write the code and run
 `npm run format`, never hand-align anything.
+
+### The engine runs in two places
+
+`src/*.mjs` is loaded by the browser over HTTP (the server serves `/src/`) and
+imported by Node. So **nothing directly under `src/` may import `node:*`, and nothing
+there may import from `src/node/`** — ESLint fails the build if it does. Anything that
+reads a file, spawns a process or unzips a buffer belongs in `src/node/`, and the
+browser reaches it over the API.
+
+The client imports the engine with the same relative path the disk has
+(`../../src/battle.mjs`), so one specifier works in the browser, in Vitest and in the
+linter's resolver. Do not invent an alias.
+
+`src/data.mjs` holds the dataset in memory and is filled by whoever booted:
+`initData()` from a `fetch` in the browser, `loadDataset()` from disk in Node. Never
+read `data/` from engine code.
+
+### The battle seam
+
+The UI never calls `submitAction` itself. `createBattleFlow(session)` takes a session
+— `{ state, submit(action) }` — and `takeAction` goes through `session.submit`. Today
+the only implementation is `createLocalSession` in `src/battleSession.mjs`, which runs
+the engine in the browser. Because battles are seeded and their state is plain JSON,
+a remote session is the only thing a networked battle would need; keep that one
+chokepoint intact and do not let a view reach past it.
 
 ## General Guidelines
 
@@ -81,21 +110,22 @@ const getUsableMoves = (mon, includeStatus) =>
 all belong there — never inline inside a branch.
 
 There is **one `constants.mjs` per directory**, and a module imports from the one that
-sits next to it: `src/constants.mjs`, `src/ui/constants.mjs`,
-`src/ui/views/constants.mjs`, `scripts/constants.mjs`, `tools/constants.mjs`. This is
+sits next to it: `src/constants.mjs`, `src/node/constants.mjs`, `server/constants.mjs`,
+`web/js/constants.mjs`, `web/js/views/constants.mjs`, `scripts/constants.mjs`,
+`tools/constants.mjs`. This is
 what the flat **Project shape** above requires — do NOT promote a module to its own
 folder just to give it a private constants file.
 
 A constant only moves out if it is pure data. A value that calls a function, derives
 from another value, or reads `process.env` is not a constant in this sense and stays in
-the module that owns it — that is why every path in `src/paths.mjs` (all built with
-`join()`) stays where it is.
+the module that owns it — that is why every path in `src/node/paths.mjs` (all built
+with `join()`) stays where it is.
 
 ```js
 // ✅ GOOD — pure data, moves to src/constants.mjs
 export const POISON_FRACTIONS = { poison: 8, burn: 16 }
 
-// ✅ GOOD — derived at load time, stays in src/paths.mjs
+// ✅ GOOD — derived at load time, stays in src/node/paths.mjs
 export const SAVE_FILE = join(HOME, 'save.json')
 ```
 
@@ -349,10 +379,24 @@ export const buy = (save, key, amount = 1) => {
 ## Module Architecture
 
 The view layer MUST NOT contain complex logic or own state directly. A file in
-`src/ui/views/` decides what the screen looks like; anything else — the rules of the
+`web/js/views/` decides what the screen looks like; anything else — the rules of the
 battle, what an item does, what a purchase costs, when an encounter expires — lives
 in an engine module under `src/` and is imported. If a view starts computing, extract
 the computation.
+
+Every view exports `draw(ctx)` and `onKey(ctx, key)`, and one with a cursor also
+exports `select(ctx, index)`. `web/js/main.mjs` is the only file that touches the
+DOM, the keyboard or the clock; it paints `draw()`'s markup into `#screen` and routes
+input back in.
+
+**MARKUP IS BUILT WITH THE `html` TAG**: views return `html\`...\``from`web/js/dom.mjs`. Interpolations are HTML-escaped — nicknames arrive from trade codes
+other people wrote, so never assemble markup by hand or reach for `innerHTML`yourself. A nested`html\`\`` result, or an array of them, passes through unescaped
+because it was already built the same way.
+
+**CLICKS REUSE THE KEY HANDLER**: an element carries `data-index` to move the cursor
+and `data-key` to send a key, and the shell turns a click into exactly the
+`select()` + `onKey()` pair a keyboard would have produced. NEVER add a click handler
+to a view — if a click cannot be expressed as a key, the key is missing.
 
 **EARLY RETURNS**: Use early returns to handle empty, blocked, missing and finished
 states BEFORE the main return. NEVER nest these as ternaries inside the main
@@ -419,15 +463,21 @@ coming in and the data going out MUST be mapped through transformer functions. T
 goal is to have a single, explicit place that documents the shape the program
 actually uses.
 
-The boundaries in this codebase are: HTTP responses (PokeAPI in `tools/`, the release
-check in `src/update.mjs`), and JSON read from or written to disk (the save file, the
+The boundaries in this codebase are: the local API between the browser and the server
+(`web/js/transformers.mjs` on the way in, `server/transformers.mjs` on the way out),
+HTTP responses from outside (PokeAPI in `tools/`, the release check in
+`src/node/update.mjs`), and JSON read from or written to disk (the save file, the
 config, the queue, the session files, the status file).
+
+The save that a browser PUTs is untrusted input like any other: it goes through
+`transformResponseSave` and `isSaveShaped` before it is allowed anywhere near the
+file on disk.
 
 ### Rules
 
 **REUSE THE EXISTING READER BEFORE WRITING A NEW ONE**: Before writing anything that
 reads a file or calls an endpoint, ALWAYS grep for existing readers of it (e.g.
-`grep -rn "SAVE_FILE" src/`). If a module already wraps that boundary, reuse it and
+`grep -rn "SAVE_FILE" src/node/`). If a module already wraps that boundary, reuse it and
 derive the fields you need where you consume them. A second reader creates a parallel
 access path that diverges over time. Only write a new one when none exists.
 

@@ -1,9 +1,14 @@
 import { mkdirSync, readFileSync, writeFileSync, existsSync } from 'node:fs'
 import { createHash } from 'node:crypto'
 import { join } from 'node:path'
-import { BUNDLED_DATA_DIR, bundledDataFile, DATA_DIR } from '../src/paths.mjs'
-import { isDataReady, loadPokedex } from '../src/data.mjs'
-import { bold, brightGreen, dim } from '../src/ui/ansi.mjs'
+import {
+  BUNDLED_DATA_DIR,
+  DATA_DIR,
+  bundledDataFile,
+} from '../src/node/paths.mjs'
+import { loadPokedex } from '../src/data.mjs'
+import { datasetIsReady } from '../src/node/dataset.mjs'
+import { bold, brightGreen, dim } from '../src/node/ansi.mjs'
 import { pass as runPass } from './progress.mjs'
 import {
   transformRequestWriteGrowth,
@@ -42,7 +47,7 @@ let requests = 0
 let cacheHits = 0
 let throttled = 0
 
-const datasetPresent = () => isDataReady() && loadPokedex().length === KANTO
+const datasetPresent = () => datasetIsReady() && loadPokedex().length === KANTO
 
 const cachePath = (url) => {
   return join(CACHE_DIR, `${createHash('sha1').update(url).digest('hex')}.json`)

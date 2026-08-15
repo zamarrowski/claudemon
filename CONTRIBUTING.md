@@ -57,16 +57,17 @@ undoes it.
 
 ### Looking at a screen without playing to it
 
-`tools/preview.mjs` renders any screen straight to stdout, so you do not have to
-catch a Pokémon to see what the battle screen looks like:
+Run `claudemon` and the game comes up in your browser. The client is served from the
+working tree with no build step and no cache, so a reload is the whole edit loop:
+change a view, a stylesheet or an engine module, hit refresh, and it is there.
 
-```bash
-node tools/preview.mjs              # every scene
-node tools/preview.mjs battle       # just one
-node tools/preview.mjs battle 100 34 # at a given size
-```
+Two things worth knowing:
 
-Pass an unknown name and it prints the list of scenes.
+- `CLAUDEMON_PORT=8080 claudemon` pins the port; by default it takes 7626 and steps
+  aside to a free one if that is busy.
+- The screens are drawn by pure functions, so a test can render one without a
+  browser: `markupOf(draw(ctx))` gives you the markup as a string, which is how the
+  suite in `web/js/views/` checks what a screen says.
 
 ## The checks
 
@@ -97,23 +98,29 @@ failure.
 ## Where things live
 
 ```
-bin/claudemon        entry point, argument parsing, boot
-src/                 the engine (battle, capture, exp, state, queue, sound, update)
-src/ui/              rendering primitives (screen, ansi, sprite, grass, widgets)
-src/ui/views/        one file per screen, each exporting draw() and onKey()
+bin/claudemon        entry point: parse arguments, boot the server, open the browser
+server/              the local HTTP server: static files, JSON API, SSE stream
+src/                 the engine — runs in both the browser and Node
+src/node/            everything that touches the machine (fs, child_process, zlib)
+web/                 the client: index.html, styles/, js/
+web/js/views/        one file per screen, each exporting draw() and onKey()
 scripts/             Claude Code hook handlers and the status line
-tools/               dev-time scripts (fetch data, fetch sprites, preview, install)
-test/                test suites
+tools/               dev-time scripts (fetch data, fetch sprites, install)
+test/                cross-cutting suites (hooks, status line, paths, engine)
 data/                generated dataset, checked in — never hand-edited
 ```
 
-Two rules that catch people out:
+Three rules that catch people out:
 
 - **`data/` is generated.** It is built from [PokeAPI](https://pokeapi.co) by
   `node tools/fetch-data.mjs` and validated by `node tools/check-data.mjs`, which
   CI runs. If a stat or a moveset is wrong, fix the generator, regenerate, and
   commit the result — do not edit the JSON by hand.
-- **Views do not think.** A file in `src/ui/views/` decides what the screen looks
+- **The engine runs in two places.** The browser loads `src/*.mjs` straight from the
+  server, so nothing directly under `src/` may import `node:*` or reach into
+  `src/node/`. The linter fails the build if it does; anything that touches the
+  machine goes in `src/node/` and is reached over the API.
+- **Views do not think.** A file in `web/js/views/` decides what the screen looks
   like. The rules of the battle, what an item does, what a purchase costs, when an
   encounter expires — all of that lives in an engine module under `src/` and is
   imported. If a view starts computing, extract the computation.
@@ -184,8 +191,8 @@ Vitest is the runner. The full conventions are in CLAUDE.md; the short version:
     the install layout, large-scale refactors.
   - If you are unsure which applies, ask in the PR rather than guessing.
 - **Fill in the description.** What it does, and why. The template asks for a couple
-  of extra things; screenshots of a changed screen are worth a lot here, and
-  `tools/preview.mjs` makes them easy.
+  of extra things; a screenshot of a changed screen is worth a lot here, and the game
+  is a browser tab, so one is a keystroke away.
 
 CI runs lint, format, the suite on Node 20.19 / 22 / 24, the coverage floor, and the
 dataset check. All of it has to be green.
@@ -199,7 +206,8 @@ Not to discourage anything — just so it is not a surprise:
 - Sprites or audio committed to the repo. Sprites are downloaded at install time on
   purpose, and the two WAVs in `assets/` are not ours to extend.
 - A lowered coverage threshold.
-- Logic that migrated into `src/ui/views/`.
+- Logic that migrated into `web/js/views/`.
+- A `node:` import under `src/`, or `innerHTML` outside `web/js/dom.mjs`.
 - Comments.
 
 ## Licensing

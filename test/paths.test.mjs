@@ -13,7 +13,7 @@ const {
   monSpriteFile,
   shinySpriteFile,
   spriteFile,
-} = await import('../src/paths.mjs')
+} = await import('../src/node/paths.mjs')
 
 test('Should let a data file in the home win, and fall back to the bundled one when it is not there', () => {
   mkdirSync(DATA_DIR, { recursive: true })

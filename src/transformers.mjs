@@ -175,7 +175,6 @@ const mapConfig = (config) => {
     bell: config.bell,
     updateCheck: config.updateCheck,
     encounterTtlSeconds: config.encounterTtlSeconds,
-    spriteScale: config.spriteScale,
     wrappedStatusLine: config.wrappedStatusLine,
     probeRows: config.probeRows,
   }

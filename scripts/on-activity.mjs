@@ -6,18 +6,20 @@ import {
   noteWaiting,
   pruneSessions,
   readActivity,
-} from '../src/activity.mjs'
-import { encounterTtlMs, loadConfig } from '../src/config.mjs'
+} from '../src/node/sessions.mjs'
+import { encounterTtlMs } from '../src/config.mjs'
+import { loadConfig } from '../src/node/config.mjs'
 import {
   loadSpeciesTable,
   rollEncounters,
   stepsWhileWorking,
 } from '../src/encounter.mjs'
-import { logError } from '../src/log.mjs'
-import { offerEncounter, readEncounter } from '../src/queue.mjs'
+import { logError } from '../src/node/log.mjs'
+import { offerEncounter, readEncounter } from '../src/node/queue.mjs'
 import { makeRng, randomSeed } from '../src/rng.mjs'
-import { readStatus } from '../src/status.mjs'
-import { accrueWorked, workedSince } from '../src/worked.mjs'
+import { readStatus } from '../src/node/status.mjs'
+import { accrueWorked } from '../src/node/worked.mjs'
+import { workedSince } from '../src/worked.mjs'
 import { DEFAULT_LEAD_LEVEL } from './constants.mjs'
 import { readStdin } from './stdin.mjs'
 import { transformResponseHookEvent } from './transformers.mjs'

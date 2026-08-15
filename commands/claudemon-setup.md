@@ -21,10 +21,12 @@ The installer is idempotent and prints a `✔`, `•` or `✘` per step. Report 
 briefly:
 
 - If every step passed: tell them to **restart Claude Code** so the hooks and the
-  status line load, then run `claudemon` in a **second terminal tab**.
+  status line load, then run `claudemon`, which serves the game locally and opens it
+  in their browser.
 - If any step did not: say which one and what the installer suggested for it. The
   usual one is `~/.local/bin` not being on their `PATH`, and the installer prints the
   line to add.
 
 Do not try to fix a failing step by inventing your own commands, and do not run the
-game — it takes over the terminal. Only relay what the installer said.
+game — it holds the terminal open while it serves. Only relay what the installer
+said.

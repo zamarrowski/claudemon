@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 
-import { mkdirSync, watch } from 'node:fs'
-import { basename, resolve } from 'node:path'
-import { createApp } from '../src/app.mjs'
-import { loadConfig } from '../src/config.mjs'
+import { mkdirSync } from 'node:fs'
+import { resolve } from 'node:path'
+import { createGame } from '../server/game.mjs'
+import { createServer, portFromEnv } from '../server/server.mjs'
 import {
   CARD_NO_OPEN_FLAG,
   CARD_NO_SAVE_HINT,
@@ -12,19 +12,16 @@ import {
   CARD_WRITTEN_PREFIX,
   DATASET_MISSING_HINT,
   DATASET_MISSING_MESSAGE,
-  FRAME_MS,
-  HEARTBEAT_MS,
-  POLL_MS,
-  TICK_MS,
-  UPDATE_POLL_MS,
+  SERVING_HINT,
+  SERVING_PREFIX,
 } from '../src/constants.mjs'
-import { isDataReady } from '../src/data.mjs'
-import { CARD_FILE, HOME, QUEUE_FILE } from '../src/paths.mjs'
-import { revealFile } from '../src/reveal.mjs'
-import { loadSave, publishStatus, recordPlayday } from '../src/state.mjs'
-import { bold, brightYellow, dim } from '../src/ui/ansi.mjs'
-import { writeCard } from '../src/ui/card.mjs'
-import { createScreen } from '../src/ui/screen.mjs'
+import { bold, brightYellow, dim } from '../src/node/ansi.mjs'
+import { openUrl } from '../src/node/browser.mjs'
+import { writeCard } from '../src/node/card.mjs'
+import { loadDataset } from '../src/node/dataset.mjs'
+import { CARD_FILE, HOME } from '../src/node/paths.mjs'
+import { revealFile } from '../src/node/reveal.mjs'
+import { loadSave } from '../src/node/save.mjs'
 
 const bail = (message, hint) => {
   process.stderr.write(
@@ -37,17 +34,6 @@ const bail = (message, hint) => {
   process.exit(1)
 }
 
-const openSave = (app) => {
-  if (!app.save) return
-
-  if (recordPlayday(app.save)) {
-    app.persist()
-    return
-  }
-
-  publishStatus(app.save)
-}
-
 const outPath = (args) => {
   const flag = args.indexOf(CARD_OUT_FLAG)
 
@@ -57,8 +43,6 @@ const outPath = (args) => {
 }
 
 const exportCard = (args) => {
-  if (!isDataReady()) bail(DATASET_MISSING_MESSAGE, DATASET_MISSING_HINT)
-
   const save = loadSave()
 
   if (!save) bail(CARD_NO_SAVE_MESSAGE, CARD_NO_SAVE_HINT)
@@ -70,99 +54,37 @@ const exportCard = (args) => {
   if (!args.includes(CARD_NO_OPEN_FLAG)) revealFile(path)
 }
 
-const main = () => {
-  if (!isDataReady()) bail(DATASET_MISSING_MESSAGE, DATASET_MISSING_HINT)
-
+const play = async () => {
   mkdirSync(HOME, { recursive: true })
 
-  const config = loadConfig()
-  const save = loadSave()
-  const screen = createScreen({ input: process.stdin, output: process.stdout })
-  const app = createApp({ screen, save, config })
+  const game = createGame()
+  const server = createServer({ game, onQuit: () => process.exit(0) })
+  const url = await server.listen(portFromEnv())
 
-  const handleResize = () => {
-    screen.repaint()
-    app.paint()
+  game.heartbeat()
+
+  process.stdout.write(
+    `\n  ${brightYellow('◓')} ${bold('claudemon')}\n\n  ${SERVING_PREFIX}${bold(url)}\n  ${dim(SERVING_HINT)}\n\n`,
+  )
+
+  openUrl(url)
+
+  const stop = () => {
+    server.close()
+    process.exit(0)
   }
 
-  const handleUpdateChecked = (changed) => {
-    if (changed) app.paint()
-  }
-
-  const tickHeartbeat = () => {
-    if (app.gym) return
-
-    openSave(app)
-  }
-
-  const handleQueueChange = (_event, filename) => {
-    if (filename !== basename(QUEUE_FILE)) return
-    if (app.pump()) app.paint()
-  }
-
-  const pollActivity = () => {
-    const arrived = app.pump()
-    const activityChanged = app.refreshActivity()
-
-    if (arrived || activityChanged || app.activity.state === 'working')
-      app.paint()
-  }
-
-  const tickBlinkOrEncounter = () => {
-    if (app.mode === 'starter' && app.setup.step === 'name') {
-      app.setup.blink = !app.setup.blink
-      app.paint()
-      return
-    }
-
-    if (app.encounter) {
-      app.pump()
-      app.paint()
-    }
-  }
-
-  const tickFrames = () => {
-    if (app.tickFrame()) app.paint()
-  }
-
-  const pollUpdates = () => {
-    if (app.refreshUpdateNotice()) app.paint()
-
-    app.checkForUpdates().then(handleUpdateChecked)
-  }
-
-  screen.start()
-  screen.onResize(handleResize)
-  screen.onKey(app.handleKey)
-
-  app.pump()
-  app.refreshActivity()
-  app.paint()
-
-  openSave(app)
-
-  app.checkForUpdates({ atLaunch: true }).then(handleUpdateChecked)
-
-  const heartbeat = setInterval(tickHeartbeat, HEARTBEAT_MS)
-
-  try {
-    watch(HOME, handleQueueChange)
-  } catch {}
-
-  const poll = setInterval(pollActivity, POLL_MS)
-
-  const tick = setInterval(tickBlinkOrEncounter, TICK_MS)
-
-  const frames = setInterval(tickFrames, FRAME_MS)
-
-  const updates = setInterval(pollUpdates, UPDATE_POLL_MS)
-
-  for (const timer of [heartbeat, poll, tick, frames, updates]) timer.unref()
-
-  process.stdin.resume()
+  process.once('SIGINT', stop)
+  process.once('SIGTERM', stop)
 }
 
 const [command, ...args] = process.argv.slice(2)
 
+try {
+  loadDataset()
+} catch {
+  bail(DATASET_MISSING_MESSAGE, DATASET_MISSING_HINT)
+}
+
 if (command === 'card') exportCard(args)
-else main()
+else await play()

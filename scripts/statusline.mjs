@@ -1,8 +1,9 @@
 import { spawnSync } from 'node:child_process'
-import { encounterTtlMs, loadConfig } from '../src/config.mjs'
+import { encounterTtlMs } from '../src/config.mjs'
+import { loadConfig } from '../src/node/config.mjs'
 import { TRAINER_MESSAGES } from '../src/constants.mjs'
-import { encounterExpiresAt, readEncounter } from '../src/queue.mjs'
-import { companionIsLive, readStatus } from '../src/status.mjs'
+import { encounterExpiresAt, readEncounter } from '../src/node/queue.mjs'
+import { companionIsLive, readStatus } from '../src/node/status.mjs'
 import { trainerLabel } from '../src/trainer.mjs'
 import {
   bold,
@@ -10,9 +11,9 @@ import {
   brightGreen,
   brightYellow,
   dim,
-} from '../src/ui/ansi.mjs'
-import { truncate } from '../src/ui/text.mjs'
-import { money } from '../src/ui/widgets.mjs'
+} from '../src/node/ansi.mjs'
+import { truncate } from '../src/node/text.mjs'
+import { money } from '../src/format.mjs'
 import {
   CALL_TO_ACTION,
   ENCOUNTER_MARK,

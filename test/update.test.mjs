@@ -14,12 +14,9 @@ import { useSandboxHome } from './sandboxHome.mjs'
 
 const sandbox = useSandboxHome('claudemon-update-')
 
-const {
-  CHECK_INTERVAL_MS,
-  DEFAULT_CONFIG,
-  SHIM_MARKER,
-  UPDATE_FAILURE_MESSAGES,
-} = await import('../src/constants.mjs')
+const { DEFAULT_CONFIG } = await import('../src/constants.mjs')
+const { CHECK_INTERVAL_MS, SHIM_MARKER, UPDATE_FAILURE_MESSAGES } =
+  await import('../src/node/constants.mjs')
 const {
   MANIFEST_URL,
   checkForUpdate,
@@ -27,24 +24,15 @@ const {
   dueForCheck,
   fetchLatestVersion,
   readUpdateState,
-  updateNotice,
   updatePlan,
-} = await import('../src/update.mjs')
-const {
-  VERSION,
-  compareVersions,
-  installedVersions,
-  isNewer,
-  isPluginCopy,
-  newestInstalled,
-  versionAt,
-} = await import('../src/version.mjs')
+} = await import('../src/node/update.mjs')
+const { compareVersions, isNewer, updateNotice } =
+  await import('../src/version.mjs')
+const { VERSION, installedVersions, isPluginCopy, newestInstalled, versionAt } =
+  await import('../src/node/version.mjs')
 const { updateCheckMode } = await import('../src/config.mjs')
-const homeView = await import('../src/ui/views/home.mjs')
-const updateView = await import('../src/ui/views/update.mjs')
-const { visibleLength } = await import('../src/ui/text.mjs')
 const { pointsElsewhere, relinkLaunchers, shimSource } =
-  await import('../src/shim.mjs')
+  await import('../src/node/shim.mjs')
 
 const servingVersion = (version) => {
   return vi.fn(async () => {
@@ -609,70 +597,6 @@ test('Should report progress as it happens, not only at the end', async () => {
     'running,pending,pending',
   )
   expect(seen, 'and the last one did too').toContain('ok,ok,ok')
-})
-
-test('Should sit the version at the right-hand end of the home footer', () => {
-  const footer = homeView.footerRow(80, '0.6.0')
-
-  expect(footer).toMatch(/v0\.6\.0/)
-  expect(visibleLength(footer), 'the version reaches the edge').toBe(80)
-  expect(footer.indexOf('quit')).toBeLessThan(footer.indexOf('v0.6.0'))
-})
-
-test('Should keep the hints and drop the version when the window is too narrow for both', () => {
-  const footer = homeView.footerRow(30, '0.6.0')
-
-  expect(footer).not.toMatch(/v0\.6\.0/)
-  expect(footer).toMatch(/quit/)
-  expect(visibleLength(footer)).toBe(
-    visibleLength(homeView.footerRow(30, null)),
-  )
-})
-
-test('Should show no version at all for a copy that cannot name its own', () => {
-  expect(homeView.footerRow(80, null)).not.toMatch(/v/)
-})
-
-test('Should say which key does the update, and only when there is one to do', () => {
-  expect(homeView.updateRow(null)).toBe('')
-  expect(homeView.updateRow({ kind: 'available', version: '0.6.0' })).toMatch(
-    /v0\.6\.0.*\[u\]/,
-  )
-
-  const stale = homeView.updateRow({ kind: 'stale', version: '0.6.0' })
-
-  expect(stale).toMatch(/installed/)
-  expect(stale, 'there is nothing to fetch').not.toMatch(/\[u\]/)
-})
-
-test('Should say on the update screen what is left to do by hand', () => {
-  const done = updateView.closingLines({
-    state: 'done',
-    from: '0.5.0',
-    to: '0.6.0',
-  })
-
-  expect(done.join('\n')).toMatch(/Restart Claude Code/)
-  expect(done.join('\n')).toMatch(/claudemon/)
-
-  const nothing = updateView.closingLines({
-    state: 'done',
-    from: '0.5.0',
-    to: '0.5.0',
-  })
-
-  expect(nothing.join('\n')).toMatch(/newest/)
-
-  const failed = updateView.closingLines({
-    state: 'failed',
-    from: '0.5.0',
-    to: null,
-  })
-
-  expect(failed.join('\n')).toMatch(/still works/)
-  expect(
-    updateView.closingLines({ state: 'running', from: '0.5.0', to: null }),
-  ).toEqual([])
 })
 
 test('Should name the copy that wrote a launcher, and fall back when it is gone', () => {

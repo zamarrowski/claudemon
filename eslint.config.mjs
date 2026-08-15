@@ -62,4 +62,25 @@ export default [
       'import-x/no-duplicates': 'error',
     },
   },
+
+  {
+    files: ['src/*.mjs', 'web/js/**/*.mjs'],
+    languageOptions: {
+      globals: globals.browser,
+    },
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['node:*', '**/node/**'],
+              message:
+                'the engine and the client run in the browser — keep Node behind src/node/ and reach it over the API',
+            },
+          ],
+        },
+      ],
+    },
+  },
 ]

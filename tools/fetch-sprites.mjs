@@ -9,7 +9,7 @@ import {
   shinySpriteFile,
   spriteFile,
   trainerSpriteFile,
-} from '../src/paths.mjs'
+} from '../src/node/paths.mjs'
 import { pool } from './pool.mjs'
 import { progress } from './progress.mjs'
 import {

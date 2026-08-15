@@ -1,6 +1,7 @@
 import { expect, test } from 'vitest'
 
 import { createBattle } from './battle.mjs'
+import { createLocalSession } from './battleSession.mjs'
 import {
   advanceMessage,
   backOutOfBattleMenu,
@@ -14,11 +15,13 @@ import { makeRng } from './rng.mjs'
 test('Should swap the move the player picks when a level-up has nowhere to put it', () => {
   const mon = createPokemon(4, 30, makeRng(1))
   const battle = createBattleFlow(
-    createBattle({
-      playerMon: mon,
-      wildMon: createPokemon(10, 5, makeRng(7)),
-      seed: 7,
-    }),
+    createLocalSession(
+      createBattle({
+        playerMon: mon,
+        wildMon: createPokemon(10, 5, makeRng(7)),
+        seed: 7,
+      }),
+    ),
   )
   const ctx = { save: { party: [mon] }, battle }
 
@@ -53,11 +56,13 @@ test('Should hold the learn menu until the player answers, and keep the four mov
   const mon = createPokemon(4, 30, makeRng(1))
   const known = mon.moves.map((slot) => slot.move)
   const battle = createBattleFlow(
-    createBattle({
-      playerMon: mon,
-      wildMon: createPokemon(10, 5, makeRng(7)),
-      seed: 7,
-    }),
+    createLocalSession(
+      createBattle({
+        playerMon: mon,
+        wildMon: createPokemon(10, 5, makeRng(7)),
+        seed: 7,
+      }),
+    ),
   )
   const ctx = { save: { party: [mon] }, battle }
 
@@ -86,7 +91,7 @@ test('Should say there is no PP left rather than spending the turn on an empty m
     wildMon: createPokemon(10, 5, makeRng(7)),
     seed: 7,
   })
-  const battle = createBattleFlow(state)
+  const battle = createBattleFlow(createLocalSession(state))
   const ctx = { save: { party: [mon] }, battle }
 
   mon.moves[0].pp = 0
@@ -109,7 +114,7 @@ test('Should leave an empty battle bag alone instead of using nothing', () => {
     wildMon: createPokemon(10, 5, makeRng(7)),
     seed: 7,
   })
-  const battle = createBattleFlow(state)
+  const battle = createBattleFlow(createLocalSession(state))
   const ctx = { save: { party: [mon], bag: {} }, battle }
 
   battle.selection = 1
@@ -136,7 +141,7 @@ test('Should refuse to send out a fainted team-mate or the one already out, and 
     wildMon: createPokemon(10, 5, makeRng(7)),
     seed: 7,
   })
-  const battle = createBattleFlow(state)
+  const battle = createBattleFlow(createLocalSession(state))
   const ctx = { save: { party: [lead, fallen] }, battle }
 
   battle.selection = 2

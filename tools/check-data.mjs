@@ -3,10 +3,10 @@ import {
   shinySpriteFile,
   spriteFile,
   trainerSpriteFile,
-} from '../src/paths.mjs'
+} from '../src/node/paths.mjs'
 import { TRAINER_CLASSES } from '../src/constants.mjs'
-import { loadData } from '../src/data.mjs'
-import { bold, brightGreen, brightRed, dim } from '../src/ui/ansi.mjs'
+import { loadDataset } from '../src/node/dataset.mjs'
+import { bold, brightGreen, brightRed, dim } from '../src/node/ansi.mjs'
 import {
   DAMAGE_CLASSES,
   FAILURE_LIST_LIMIT,
@@ -28,7 +28,7 @@ const check = (description, condition, detail = '') => {
 
 const readDataset = () => {
   try {
-    return loadData()
+    return loadDataset()
   } catch (error) {
     console.error(
       `\n${brightRed('✘')} cannot read the dataset: ${error.message}`,

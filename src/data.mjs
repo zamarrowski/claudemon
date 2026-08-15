@@ -1,37 +1,24 @@
-import { readFileSync } from 'node:fs'
-import { dataFile } from './paths.mjs'
+import { DATA_NOT_LOADED } from './constants.mjs'
 
-let cache = null
+let dataset = null
 
-const read = (name) => JSON.parse(readFileSync(dataFile(name), 'utf8'))
+const indexById = (pokedex) => new Map(pokedex.map((mon) => [mon.id, mon]))
+
+export const initData = ({ pokedex, moves, types, growth }) => {
+  dataset = { pokedex, byId: indexById(pokedex), moves, types, growth }
+
+  return dataset
+}
 
 export const loadData = () => {
-  if (cache) return cache
+  if (!dataset) throw new Error(DATA_NOT_LOADED)
 
-  const pokedex = read('pokedex.json')
-
-  cache = {
-    pokedex,
-    byId: new Map(pokedex.map((mon) => [mon.id, mon])),
-    moves: read('moves.json'),
-    types: read('types.json'),
-    growth: read('growth.json'),
-  }
-
-  return cache
+  return dataset
 }
+
+export const isDataReady = () => dataset != null
 
 export const loadPokedex = () => loadData().pokedex
-
-export const isDataReady = () => {
-  try {
-    loadData()
-
-    return true
-  } catch {
-    return false
-  }
-}
 
 export const species = (id) => {
   const mon = loadData().byId.get(id)

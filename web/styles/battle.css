@@ -1,0 +1,247 @@
+.gb {
+  background: var(--gb-shell);
+  border-radius: 16px;
+  padding: 14px;
+  box-shadow: var(--shadow);
+}
+
+.gb__field {
+  position: relative;
+  aspect-ratio: 10 / 7;
+  border-radius: 8px;
+  background: linear-gradient(
+    180deg,
+    var(--gb-screen) 0%,
+    var(--gb-screen) 62%,
+    var(--gb-screen-dark) 62%,
+    var(--gb-screen-dark) 100%
+  );
+  color: var(--gb-ink);
+  overflow: hidden;
+  font-family: var(--font-mono);
+}
+
+.gb__side {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.gb__side--foe {
+  top: 6%;
+  left: 5%;
+}
+
+.gb__side--player {
+  bottom: 8%;
+  right: 5%;
+  align-items: flex-end;
+}
+
+.gb__nameplate {
+  background: rgb(255 255 255 / 55%);
+  border: 2px solid var(--gb-ink);
+  border-radius: 6px;
+  padding: 4px 10px;
+  min-width: 160px;
+}
+
+.gb__nameplate .name {
+  font-size: 13px;
+  letter-spacing: 0.08em;
+}
+
+.gb__mon {
+  position: absolute;
+}
+
+.gb__mon--foe {
+  top: 4%;
+  right: 8%;
+}
+
+.gb__mon--player {
+  bottom: 16%;
+  left: 6%;
+}
+
+.gb__mon img {
+  image-rendering: pixelated;
+  width: min(190px, 34vw);
+  height: min(190px, 34vw);
+}
+
+.gb__mon[data-hit='true'] img {
+  animation: hit 0.28s steps(2) 2;
+}
+
+.gb__mon[data-hidden='true'] img {
+  opacity: 0;
+}
+
+.gb__mon--sent img {
+  animation: sent-out 0.4s ease-out;
+}
+
+@keyframes hit {
+  50% {
+    opacity: 0.25;
+    transform: translateX(6px);
+  }
+}
+
+@keyframes sent-out {
+  from {
+    transform: scale(0.2) translateY(30px);
+    opacity: 0;
+  }
+}
+
+.gb__ball {
+  position: absolute;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 2px solid var(--gb-ink);
+  background: linear-gradient(
+    180deg,
+    #d64545 0%,
+    #d64545 46%,
+    var(--gb-ink) 46%,
+    var(--gb-ink) 54%,
+    #f4f4f4 54%,
+    #f4f4f4 100%
+  );
+  transform: translate(-50%, -50%) rotate(calc(var(--tilt, 0) * 12deg));
+  transition:
+    left 0.06s linear,
+    top 0.06s linear;
+}
+
+.gb__ball::after {
+  content: '';
+  position: absolute;
+  inset: 38%;
+  border-radius: 50%;
+  border: 2px solid var(--gb-ink);
+  background: #f4f4f4;
+}
+
+.gb__ball[data-lit='true']::after {
+  background: #ffe260;
+}
+
+.gb__ball[data-kind='shake'] {
+  animation: wobble 0.24s ease-in-out;
+}
+
+@keyframes wobble {
+  50% {
+    transform: translate(-50%, -50%) rotate(14deg);
+  }
+}
+
+.gb__ball[data-kind='burst'] {
+  animation: burst 0.3s ease-out forwards;
+}
+
+@keyframes burst {
+  to {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(1.8);
+  }
+}
+
+.gb__trainer {
+  position: absolute;
+  right: 8%;
+  top: 6%;
+}
+
+.gb__trainer img {
+  image-rendering: pixelated;
+  width: min(170px, 30vw);
+}
+
+.gb__tray {
+  display: flex;
+  gap: 4px;
+}
+
+.gb__tray span {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  border: 2px solid var(--gb-ink);
+}
+
+.gb__tray span[data-left='true'] {
+  background: var(--gb-ink);
+}
+
+.dialog {
+  margin-top: 10px;
+  border: 3px solid var(--gb-ink);
+  border-radius: 8px;
+  background: rgb(255 255 255 / 78%);
+  color: var(--gb-ink);
+  padding: 12px 14px;
+  min-height: 84px;
+  font-family: var(--font-mono);
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--gap);
+}
+
+.dialog__more {
+  animation: blink 0.9s steps(2) infinite;
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+.battle-menu {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.battle-menu--moves {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.move {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 10px;
+  border: 2px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--panel);
+  cursor: pointer;
+  text-align: left;
+}
+
+.move[aria-selected='true'] {
+  border-color: var(--accent);
+}
+
+.move[disabled] {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.move__meta {
+  display: flex;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-soft);
+}

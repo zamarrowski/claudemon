@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>claudemon — wild Pokemon appear while you work in Claude Code</title>
-<meta name="description" content="Wild Pokemon appear while you work in Claude Code. Your prompts are steps through the grass. The original 151, fully local, in a terminal tab of its own.">
+<meta name="description" content="Wild Pokemon appear while you work in Claude Code. Your prompts are steps through the grass. The original 151, fully local, in a browser tab of its own.">
 <link rel="canonical" href="https://zamarrowski.github.io/claudemon/">
 <meta property="og:type" content="website">
 <meta property="og:title" content="claudemon">
@@ -337,7 +337,7 @@
 <span class="bar-full">███████</span><span class="bar-empty">░░░░░░░</span> <span class="meta">63% left | Opus 5</span>
 <span class="alert">✦ A wild PIDGEY appeared!</span><span class="meta">  ·  24s left  ·  claudemon</span></pre>
     </div>
-    <p class="dim" style="margin-top:.75rem;font-size:.875rem">The status line in Claude tells you something is waiting. The game sits in a second terminal tab — that is where you go and fight it.</p>
+    <p class="dim" style="margin-top:.75rem;font-size:.875rem">The status line in Claude tells you something is waiting. The game sits in a browser tab of its own — that is where you go and fight it.</p>
   </div>
 
   <div class="grass">
@@ -411,7 +411,7 @@
     <h2>The gyms</h2>
     <p class="lede">For when you would rather go looking for a fight than wait for one. Eight of them, one per type and easiest first: two trainers and then the leader, back to back, with no shop, no rest and nothing wild interrupting.</p>
 
-    <p><strong>Nothing is written to disk while you are in there.</strong> Beat the leader and the badge is yours. Lose, give up or close the terminal and the whole run is undone — the experience, the money, the potions and the bruises, as if you had never gone in.</p>
+    <p><strong>Nothing is written to disk while you are in there.</strong> Beat the leader and the badge is yours. Lose, give up or close the game and the whole run is undone — the experience, the money, the potions and the bruises, as if you had never gone in.</p>
 
     <div class="pair">
       <figure class="shot">
@@ -438,9 +438,9 @@
     <ul>
       <li><b>Claude Code</b> — you are already in it.</li>
       <li><b>Node.js 20.19 or newer</b> — <code>node --version</code>. The game and the hooks run on it, and Claude Code ships as its own binary so it does not bring one. Nothing else to install: no dependencies, no build step.</li>
-      <li><b>A terminal with truecolor</b> — iTerm2, Ghostty, WezTerm, Kitty, Alacritty and VS Code's terminal are all fine.</li>
+      <li><b>A browser from this decade</b> — Chrome, Safari, Firefox or Edge. The game is served from your own machine.</li>
     </ul>
-    <p><span class="warn">Not macOS Terminal.</span> The sprites come out striped and stretched there, and no setting fixes it. Use any of the others.</p>
+    <p class="dim">Nothing is hosted anywhere. <code>claudemon</code> starts a server on <code>127.0.0.1</code>, opens your browser at it, and stops when you press Ctrl-C.</p>
 
     <h3>Five steps</h3>
     <ol class="steps">
@@ -466,7 +466,7 @@
         <p><span class="warn">Restart Claude Code once more</span>, so the new status line loads.</p>
       </li>
       <li>
-        <p>In a <b>second terminal tab</b>, run <code>claudemon</code>. It asks for a name and a starter the first time, and after that it sits there waiting.</p>
+        <p>Run <code>claudemon</code>. It serves the game and opens it in your browser; it asks for a name and a starter the first time, and after that it sits there waiting.</p>
         <div class="code">
 <pre>claudemon</pre>
           <button type="button" aria-label="Copy the launch command">COPY</button>
@@ -523,7 +523,7 @@ node tools/install.mjs</pre>
       <button type="button" aria-label="Copy the card command">COPY</button>
     </div>
 
-    <p class="dim">Either way it lands in <code>~/.claudemon/card.png</code> and opens in whatever shows PNGs on your desktop. The game writes the file itself — the same pixel font and palette you see in the terminal, encoded with nothing but <code>node:zlib</code>. No browser, no canvas library, no dependency.</p>
+    <p class="dim">Either way it lands in <code>~/.claudemon/card.png</code> and opens in whatever shows PNGs on your desktop. The game writes the file itself — its own pixel font and palette, encoded with nothing but <code>node:zlib</code>. No canvas library, no dependency.</p>
   </section>
 
   <section id="daycare">

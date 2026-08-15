@@ -1,12 +1,4 @@
 import {
-  mkdirSync,
-  readFileSync,
-  renameSync,
-  unlinkSync,
-  writeFileSync,
-} from 'node:fs'
-import { recordAchievements } from './achievements.mjs'
-import {
   DAY_MS,
   EMPTY_STATS,
   PARTY_LIMIT,
@@ -17,24 +9,16 @@ import {
   STARTING_MONEY,
 } from './constants.mjs'
 import { allPokemon, pokemonList } from './helpers.mjs'
-import { HOME, SAVE_FILE } from './paths.mjs'
-import {
-  createPokemon,
-  displayName,
-  healFully,
-  isFainted,
-  levelOf,
-  refreshStats,
-  rollShiny,
-} from './pokemon.mjs'
-import { writeStatus } from './status.mjs'
+import { createPokemon, healFully, isFainted, rollShiny } from './pokemon.mjs'
 import { countOfKind } from './shop.mjs'
 import { advanceStreak } from './streak.mjs'
-import {
-  transformRequestSaveGame,
-  transformResponseSave,
-} from './transformers.mjs'
-import { readWorked } from './worked.mjs'
+
+export const isSaveShaped = (save) => {
+  if (typeof save?.trainer?.name !== 'string') return false
+  if (!Array.isArray(save.party) || !Array.isArray(save.box)) return false
+
+  return Boolean(save.dex && save.bag && save.stats)
+}
 
 export const recordPlayday = (save, now = Date.now()) => {
   const next = advanceStreak(save.stats, now)
@@ -130,35 +114,6 @@ export const recordInDex = (save, mon) => {
   return markCaught(save, mon.species)
 }
 
-const migrate = (save) => {
-  for (const mon of allPokemon(save)) {
-    recordInDex(save, mon)
-    refreshStats(mon)
-  }
-
-  recordAchievements(save, readWorked())
-
-  save.version = SAVE_VERSION
-
-  return save
-}
-
-const readSaveFile = () => {
-  try {
-    return JSON.parse(readFileSync(SAVE_FILE, 'utf8'))
-  } catch {
-    return null
-  }
-}
-
-export const loadSave = () => {
-  const save = transformResponseSave(readSaveFile())
-
-  if (!save) return null
-
-  return migrate(save)
-}
-
 export const activePokemon = (save) => {
   return save.party.find((mon) => !isFainted(mon)) ?? null
 }
@@ -183,50 +138,6 @@ export const partyNeedsHealing = (save) => {
 }
 
 export const totalBalls = (save) => countOfKind(save, 'ball')
-
-const getLead = (save) => {
-  if (!save.party.length) return null
-
-  return activePokemon(save) ?? save.party[0]
-}
-
-const describeLead = (lead) => {
-  if (!lead) return null
-
-  return { name: displayName(lead), level: levelOf(lead) }
-}
-
-export const publishStatus = (save) => {
-  writeStatus({
-    lead: describeLead(getLead(save)),
-    balls: totalBalls(save),
-    money: save.money,
-    caught: save.dex.caught.length,
-  })
-}
-
-export const saveGame = (save) => {
-  mkdirSync(HOME, { recursive: true })
-
-  const tmp = `${SAVE_FILE}.${process.pid}.tmp`
-
-  try {
-    writeFileSync(tmp, JSON.stringify(transformRequestSaveGame(save)))
-    renameSync(tmp, SAVE_FILE)
-  } catch (error) {
-    try {
-      unlinkSync(tmp)
-    } catch {}
-
-    throw error
-  }
-
-  try {
-    publishStatus(save)
-  } catch {}
-
-  return save
-}
 
 export const stow = (save, mon) => {
   const where = save.party.length < PARTY_LIMIT ? 'party' : 'box'
