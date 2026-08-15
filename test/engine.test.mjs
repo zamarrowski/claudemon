@@ -933,6 +933,25 @@ test('Should score a recoil double knockout as a win, not a loss', () => {
   expect(battle.rewards.exp).toBeGreaterThan(0)
 })
 
+test('Should knock the user of Self-Destruct out even when the target survives the blast', () => {
+  const player = aPokemon(143, 50)
+  const foe = aPokemon(100, 20)
+
+  player.moves = [{ move: 'growl', pp: 40, maxPp: 40 }]
+  foe.moves = [{ move: 'self-destruct', pp: 5, maxPp: 5 }]
+
+  const battle = createBattle({ playerMon: player, wildMon: foe, seed: 5 })
+
+  const texts = textsOf(submitAction(battle, { type: 'move', index: 0 }))
+
+  expect(texts).toContain('the wild Voltorb used Self-Destruct!')
+  expect(foe.hp, 'the blast takes the user down with it').toBe(0)
+  expect(player.hp).toBeGreaterThan(0)
+  expect(player.hp).toBeLessThan(player.stats.hp)
+  expect(texts).toContain('the wild Voltorb fainted!')
+  expect(battle.outcome).toBe('win')
+})
+
 test('Should let Leech Seed sap a fainted Pokemon without bringing it back', () => {
   const player = aPokemon(143, 40)
   const foe = aPokemon(1, 40)

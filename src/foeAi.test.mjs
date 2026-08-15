@@ -57,6 +57,29 @@ test('Should skip a disabled slot even when it scores best', () => {
   expect(pickFoeMove(battle)).toBe(0)
 })
 
+test('Should hold Self-Destruct back until the foe is worn down', () => {
+  const battle = {
+    player: { mon: { species: 4, stats: { speed: 50 }, status: null } },
+    foe: {
+      mon: {
+        hp: 40,
+        stats: { hp: 40 },
+        moves: [
+          { move: 'screech', pp: 40, maxPp: 40 },
+          { move: 'self-destruct', pp: 5, maxPp: 5 },
+        ],
+      },
+      volatile: emptyVolatile(),
+    },
+  }
+
+  expect(pickFoeMove(battle), 'untouched, it screeches instead').toBe(0)
+
+  battle.foe.mon.hp = 5
+
+  expect(pickFoeMove(battle), 'on its last legs, it blows up').toBe(1)
+})
+
 test('Should let priority beat speed when deciding who moves first', () => {
   const battle = {
     rng: () => 0.2,

@@ -8,6 +8,7 @@ import {
   PARALYSIS_SKIP_CHANCE,
   POISON_FRACTIONS,
   RUN_ODDS,
+  SELF_KO_MOVES,
   SLEEP_TURNS,
   SLEEP_WAKE_CHANCE,
   STAGE_LIMIT,
@@ -315,38 +316,9 @@ const applyDrain = (battle, attackerSide, drain, total, events) => {
   )
 }
 
-const useMove = (battle, attackerSide, moveIndex, events) => {
+const resolveMove = (battle, attackerSide, move, events) => {
   const attacker = battle[attackerSide]
   const defenderSide = other(attackerSide)
-
-  if (blockedByStatus(battle, attackerSide, events)) return
-  if (blockedByVolatile(battle, attackerSide, events)) return
-
-  const slot = moveSlotOf(attacker, moveIndex)
-  const disabled = slot != null && isMoveDisabled(attacker, moveIndex)
-
-  let move
-
-  if (slot && !disabled) {
-    move = { ...moveData(slot.move), key: slot.move }
-    slot.pp--
-  } else if (!hasUsableMove(attacker)) {
-    move = { ...STRUGGLE.data, key: STRUGGLE.move }
-  } else if (disabled) {
-    const who = label(battle, attackerSide)
-
-    say(
-      events,
-      `${who}'s ${moveData(slot.move).name} ${TURN_MESSAGES.disabled}`,
-    )
-
-    return
-  } else {
-    say(events, TURN_MESSAGES.noPp)
-    return
-  }
-
-  say(events, `${label(battle, attackerSide)} used ${move.name}!`)
 
   if (UNSUPPORTED_MOVES.has(move.key)) {
     say(events, TURN_MESSAGES.failed)
@@ -449,6 +421,44 @@ const useMove = (battle, attackerSide, moveIndex, events) => {
     applyStatChanges(battle, attackerSide, move, events)
     applyFlinch(battle, defenderSide, move)
   }
+}
+
+const useMove = (battle, attackerSide, moveIndex, events) => {
+  const attacker = battle[attackerSide]
+
+  if (blockedByStatus(battle, attackerSide, events)) return
+  if (blockedByVolatile(battle, attackerSide, events)) return
+
+  const slot = moveSlotOf(attacker, moveIndex)
+  const disabled = slot != null && isMoveDisabled(attacker, moveIndex)
+
+  let move
+
+  if (slot && !disabled) {
+    move = { ...moveData(slot.move), key: slot.move }
+    slot.pp--
+  } else if (!hasUsableMove(attacker)) {
+    move = { ...STRUGGLE.data, key: STRUGGLE.move }
+  } else if (disabled) {
+    const who = label(battle, attackerSide)
+
+    say(
+      events,
+      `${who}'s ${moveData(slot.move).name} ${TURN_MESSAGES.disabled}`,
+    )
+
+    return
+  } else {
+    say(events, TURN_MESSAGES.noPp)
+    return
+  }
+
+  say(events, `${label(battle, attackerSide)} used ${move.name}!`)
+
+  resolveMove(battle, attackerSide, move, events)
+
+  if (SELF_KO_MOVES.has(move.key))
+    applyDamage(battle, attackerSide, attacker.mon.hp, events)
 }
 
 const endOfTurnDamage = (battle, side, events) => {
