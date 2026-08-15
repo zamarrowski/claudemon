@@ -1,6 +1,10 @@
-import { API, CLIENT_HEADER, DATASET_URLS } from './constants.mjs'
+import { CLIENT_HEADER } from '../../src/constants.mjs'
+import { API, DATASET_URLS } from './constants.mjs'
 import {
+  transformResponseActivity,
   transformResponseBootstrap,
+  transformResponseEncounter,
+  transformResponseNotice,
   transformResponseTradeRead,
   transformResponseUpdateRun,
   transformRequestGift,
@@ -60,11 +64,28 @@ export const startUpdate = async () => {
 
 export const quitGame = () => send('POST', API.quit)
 
+const READ_EVENT = {
+  encounter: transformResponseEncounter,
+  activity: transformResponseActivity,
+  notice: transformResponseNotice,
+  update: transformResponseUpdateRun,
+}
+
+const readEvent = (type, data) => {
+  const read = READ_EVENT[type]
+
+  if (!read) return data
+
+  return read(data)
+}
+
 export const listenForEvents = (handlers) => {
   const source = new EventSource(`${API.events}?client=${clientId}`)
 
   for (const [type, handle] of Object.entries(handlers)) {
-    source.addEventListener(type, (event) => handle(JSON.parse(event.data)))
+    source.addEventListener(type, (event) =>
+      handle(readEvent(type, JSON.parse(event.data))),
+    )
   }
 
   return () => source.close()

@@ -202,17 +202,6 @@
   border: 1px solid var(--line);
 }
 
-.input {
-  width: 100%;
-  padding: 10px;
-  font-family: var(--font-mono);
-  font-size: 14px;
-  color: var(--ink);
-  background: var(--panel-soft);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-sm);
-}
-
 .steps {
   display: flex;
   flex-direction: column;

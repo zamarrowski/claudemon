@@ -155,8 +155,8 @@ test('Should heal one Pokemon with a potion and put the bag away', () => {
   ctx.save.party[0].hp = 1
 
   ctx.setMode('team')
-  ctx.openBag()
-  ctx.useFromBag('potion', 0)
+  ctx.openBag(0)
+  ctx.useFromBag('potion')
 
   expect(ctx.save.party[0].hp).toBeGreaterThan(1)
   expect(ctx.save.bag.potion).toBeUndefined()
@@ -340,7 +340,12 @@ test('Should tick every clock the screen runs on in one go', () => {
     activity: { state: 'working', tool: null, since: 1, sessions: 1 },
   })
 
-  ctx.scene.frames = 1
+  ctx.save.daycare.egg = { species: 25, steps: EGG_STEPS - 1, shiny: false }
 
-  expect(ctx.tickFrame()).toBe(true)
+  let moved = false
+
+  for (let frame = 0; frame < FRAMES_PER_DAYCARE_STEP; frame++)
+    moved = ctx.tickFrame() || moved
+
+  expect(moved, 'the day care is one of the clocks it turns').toBe(true)
 })

@@ -1,6 +1,7 @@
+import { EMPTY_WORKED, UNKNOWN_ACTIVITY } from '../../src/constants.mjs'
+
 const mapActivity = (activity) => {
-  if (!activity)
-    return { state: 'unknown', tool: null, since: null, sessions: 0 }
+  if (!activity) return { ...UNKNOWN_ACTIVITY }
 
   return {
     state: activity.state,
@@ -38,7 +39,7 @@ export const transformResponseEncounter = (encounter) => {
 export const transformResponseActivity = (activity) => mapActivity(activity)
 
 export const transformResponseWorked = (worked) => {
-  if (!worked) return { totalMs: 0, updatedAt: null }
+  if (!worked) return { ...EMPTY_WORKED }
 
   return { totalMs: worked.totalMs, updatedAt: worked.updatedAt }
 }

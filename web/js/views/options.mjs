@@ -10,7 +10,7 @@ import {
   UPDATE_CHECK_BY_MODE,
   UPDATE_CHECK_VALUES,
 } from './constants.mjs'
-import { clampSelection, currentIndex, noteRows, wrap } from './helpers.mjs'
+import { clampSelection, currentIndex, wrap } from './helpers.mjs'
 
 export const SETTINGS = [
   {
@@ -71,7 +71,7 @@ export const draw = (ctx) => {
         })}
       </div>
     </section>
-    ${notes(noteRows(ctx.optionsMessage))} ${hints(OPTIONS_HINTS, ctx.version)}
+    ${notes(ctx.optionsMessage)} ${hints(OPTIONS_HINTS, ctx.version)}
   </div>`
 }
 

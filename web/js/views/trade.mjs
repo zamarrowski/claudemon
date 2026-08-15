@@ -10,7 +10,7 @@ import {
   TRADE_WARNING,
   TRADE_WARNING_TITLE,
 } from './constants.mjs'
-import { monSprite, noteRows } from './helpers.mjs'
+import { monSprite } from './helpers.mjs'
 
 const confirmStep = (ctx) => {
   const mon = ctx.tradeGiving.mon
@@ -86,8 +86,8 @@ const hintFor = (ctx) => {
 
 export const draw = (ctx) => {
   return html`<div class="screen">
-    ${screenHead(TRADE_TITLE)} ${stepFor(ctx)}
-    ${notes(noteRows(ctx.tradeMessage))} ${hints(hintFor(ctx), ctx.version)}
+    ${screenHead(TRADE_TITLE)} ${stepFor(ctx)} ${notes(ctx.tradeMessage)}
+    ${hints(hintFor(ctx), ctx.version)}
   </div>`
 }
 

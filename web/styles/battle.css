@@ -66,8 +66,7 @@
   left: 6%;
 }
 
-.gb__mon img {
-  image-rendering: pixelated;
+.gb__mon .sprite--battle {
   width: min(190px, 34vw);
   height: min(190px, 34vw);
 }
@@ -80,21 +79,10 @@
   opacity: 0;
 }
 
-.gb__mon--sent img {
-  animation: sent-out 0.4s ease-out;
-}
-
 @keyframes hit {
   50% {
     opacity: 0.25;
     transform: translateX(6px);
-  }
-}
-
-@keyframes sent-out {
-  from {
-    transform: scale(0.2) translateY(30px);
-    opacity: 0;
   }
 }
 

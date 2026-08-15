@@ -1,11 +1,4 @@
-import {
-  mkdirSync,
-  readdirSync,
-  readFileSync,
-  renameSync,
-  unlinkSync,
-  writeFileSync,
-} from 'node:fs'
+import { readdirSync, unlinkSync } from 'node:fs'
 import { join } from 'node:path'
 import { STALE_MS } from '../constants.mjs'
 import {
@@ -18,18 +11,11 @@ import {
   transformRequestWriteActivity,
   transformResponseActivity,
 } from '../transformers.mjs'
+import { readJson, writeJson } from './files.mjs'
 import { SESSIONS_DIR, sessionFile } from './paths.mjs'
 
-const parseEntryFile = (path) => {
-  try {
-    return JSON.parse(readFileSync(path, 'utf8'))
-  } catch {
-    return null
-  }
-}
-
 const readEntry = (path) => {
-  const entry = transformResponseActivity(parseEntryFile(path))
+  const entry = transformResponseActivity(readJson(path))
 
   if (typeof entry?.at !== 'number') return null
 
@@ -40,13 +26,7 @@ export const readActivity = (sessionId) => readEntry(sessionFile(sessionId))
 
 export const writeActivity = (entry) => {
   try {
-    mkdirSync(SESSIONS_DIR, { recursive: true })
-
-    const path = sessionFile(entry.session)
-    const tmp = `${path}.${process.pid}.tmp`
-
-    writeFileSync(tmp, JSON.stringify(transformRequestWriteActivity(entry)))
-    renameSync(tmp, path)
+    writeJson(sessionFile(entry.session), transformRequestWriteActivity(entry))
   } catch {}
 
   return entry

@@ -1,4 +1,4 @@
-const mapActivity = (activity) => {
+export const transformRequestActivity = (activity) => {
   return {
     state: activity.state,
     tool: activity.tool,
@@ -16,7 +16,7 @@ const mapTrainerEncounter = (trainer) => {
   }
 }
 
-const mapEncounter = (encounter) => {
+export const transformRequestEncounter = (encounter) => {
   if (!encounter) return null
 
   return {
@@ -42,10 +42,6 @@ const mapWorked = (worked) => {
   return { totalMs: worked.totalMs, updatedAt: worked.updatedAt }
 }
 
-export const transformRequestActivity = (activity) => mapActivity(activity)
-
-export const transformRequestEncounter = (encounter) => mapEncounter(encounter)
-
 export const transformRequestBootstrap = ({
   version,
   save,
@@ -59,8 +55,8 @@ export const transformRequestBootstrap = ({
     version,
     save,
     config,
-    activity: mapActivity(activity),
-    encounter: mapEncounter(encounter),
+    activity: transformRequestActivity(activity),
+    encounter: transformRequestEncounter(encounter),
     worked: mapWorked(worked),
     notice: mapNotice(notice),
   }

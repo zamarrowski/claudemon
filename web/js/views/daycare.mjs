@@ -16,7 +16,7 @@ import {
   EMPTY_SLOT_LABEL,
   FROM_BOX_TAG,
 } from './constants.mjs'
-import { clampSelection, noteRows, wrap } from './helpers.mjs'
+import { clampSelection, wrap } from './helpers.mjs'
 
 const slotRows = (ctx) => {
   const slots = ctx.save.daycare.slots
@@ -107,7 +107,7 @@ export const draw = (ctx) => {
                 ${pickRows(ctx)}`
             : slotRows(ctx)
         }
-        ${notes(noteRows(ctx.daycareMessage))}
+        ${notes(ctx.daycareMessage)}
       </div>
       ${eggPanel(ctx.save)}
     </div>

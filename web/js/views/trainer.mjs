@@ -1,5 +1,5 @@
 import { achievementEntries, earnedCount } from '../../../src/achievements.mjs'
-import { ACHIEVEMENTS } from '../../../src/constants.mjs'
+import { ACHIEVEMENTS, KANTO_TOTAL } from '../../../src/constants.mjs'
 import { money } from '../../../src/format.mjs'
 import { daysOnTheRoad } from '../../../src/state.mjs'
 import { workedHours } from '../../../src/worked.mjs'
@@ -7,7 +7,6 @@ import { html } from '../dom.mjs'
 import { hints, screenHead } from './chrome.mjs'
 import {
   ACHIEVEMENT_MARKS,
-  KANTO_TOTAL,
   TRAINER_ACHIEVEMENTS_TITLE,
   TRAINER_HINTS,
   TRAINER_NOTES,
@@ -114,7 +113,6 @@ export const onKey = (ctx, key) => {
     ctx.exportCard()
   } else if (key.name === 'esc' || key.name === 'q') {
     ctx.playSound('back')
-    ctx.homeSelection = 0
-    ctx.setMode('home')
+    ctx.goHome()
   }
 }

@@ -1,7 +1,7 @@
+import { KANTO_TOTAL } from '../../../src/constants.mjs'
 import { loadData, species } from '../../../src/data.mjs'
 import { timesFaced } from '../../../src/state.mjs'
 import { html } from '../dom.mjs'
-import { monSpriteUrl } from '../sprites.mjs'
 import { hints, screenHead } from './chrome.mjs'
 import {
   BASE_STAT_MAX,
@@ -11,7 +11,6 @@ import {
   DEX_SORT_LABELS,
   DEX_TITLE,
   DEX_UNKNOWN_NAME,
-  KANTO_TOTAL,
   STAT_LABELS_SHORT,
 } from './constants.mjs'
 import {
@@ -20,17 +19,22 @@ import {
   evolutionWording,
   nextDexSort,
   sortedDex,
+  speciesSprite,
   typeBadge,
   wrap,
 } from './helpers.mjs'
 
-export const dexEntries = (ctx) => {
+const dexEntries = (ctx) => {
+  const caught = new Set(ctx.save.dex.caught)
+  const seen = new Set(ctx.save.dex.seen)
+  const shiny = new Set(ctx.save.dex.shiny)
+
   return sortedDex(loadData().pokedex, ctx.dexSort).map((entry) => {
     return {
       entry,
-      caught: ctx.save.dex.caught.includes(entry.id),
-      seen: ctx.save.dex.seen.includes(entry.id),
-      shiny: ctx.save.dex.shiny.includes(entry.id),
+      caught: caught.has(entry.id),
+      seen: seen.has(entry.id),
+      shiny: shiny.has(entry.id),
     }
   })
 }
@@ -62,11 +66,7 @@ const detail = (ctx, row) => {
 
   if (!caught) {
     return html`<aside class="panel detail">
-      <img
-        class="sprite sprite--lg"
-        src="${monSpriteUrl('front', entry.id, false)}"
-        alt=""
-      />
+      ${speciesSprite(entry.id, { size: 'lg', shiny: false })}
       <p class="name">${seen ? entry.name : DEX_UNKNOWN_NAME}</p>
       <p class="hint">${seen ? DEX_MESSAGES.notCaught : DEX_MESSAGES.noData}</p>
       <p class="hint">${DEX_MESSAGES.fillItIn}</p>
@@ -74,12 +74,7 @@ const detail = (ctx, row) => {
   }
 
   return html`<aside class="panel detail">
-    <img
-      class="sprite sprite--lg"
-      src="${monSpriteUrl('front', entry.id, shiny)}"
-      data-fallback="${monSpriteUrl('front', entry.id, false)}"
-      alt=""
-    />
+    ${speciesSprite(entry.id, { size: 'lg', shiny })}
     <p class="name">
       ${entry.name}
       ${shiny ? html`<span class="tag tag--shiny">shiny</span>` : ''}
@@ -132,11 +127,7 @@ export const draw = (ctx) => {
               <span class="dex__number"
                 >#${String(row.entry.id).padStart(3, '0')}</span
               >
-              <img
-                class="sprite sprite--sm"
-                src="${monSpriteUrl('front', row.entry.id, false)}"
-                alt=""
-              />
+              ${speciesSprite(row.entry.id, { size: 'sm', shiny: false })}
               <span class="dex__name"
                 >${row.seen ? row.entry.name : DEX_UNKNOWN_NAME}</span
               >
@@ -154,7 +145,7 @@ export const select = (ctx, index) => {
 }
 
 export const onKey = (ctx, key) => {
-  const total = dexEntries(ctx).length
+  const total = loadData().pokedex.length
 
   if (key.name === 'up' || key.name === 'k')
     ctx.dexSelection = wrap(ctx.dexSelection - 1, total)

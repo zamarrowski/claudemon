@@ -39,8 +39,6 @@ export const UPDATE_FILE = join(HOME, 'update.json')
 
 export const LOG_FILE = join(HOME, 'claudemon.log')
 
-export const SOUNDS_DIR = join(HOME, 'sounds')
-
 export const PLUGIN_CACHE = join(
   homedir(),
   '.claude',
@@ -59,8 +57,6 @@ export const dataFile = (name) => {
 }
 
 export const bundledDataFile = (name) => join(BUNDLED_DATA_DIR, name)
-
-export const assetFile = (name) => join(BUNDLED_ASSETS_DIR, name)
 
 export const sessionFile = (id) => {
   return join(

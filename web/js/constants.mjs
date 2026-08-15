@@ -5,14 +5,11 @@ export const API = {
   config: '/api/config',
   encounter: '/api/encounter',
   card: '/api/card',
-  cardImage: '/api/card.png',
   tradeCode: '/api/trade/code',
   tradeRead: '/api/trade/read',
   update: '/api/update',
   quit: '/api/quit',
 }
-
-export const CLIENT_HEADER = 'x-claudemon-client'
 
 export const DATASET_URLS = [
   '/data/pokedex.json',
@@ -54,8 +51,6 @@ export const TICK_MS = 500
 
 export const FRAME_MS = 60
 
-export const COUNTDOWN_MS = 1000
-
 export const MUSIC_VOLUME = 0.35
 
 export const EFFECT_VOLUME = 0.18
@@ -74,3 +69,53 @@ export const SWALLOWED_KEYS = new Set([
   'backspace',
   'tab',
 ])
+
+export const SOUNDS = {
+  cursor: { gain: 0.16, notes: [{ hz: 1175, ms: 16 }] },
+
+  select: {
+    gain: 0.2,
+    notes: [
+      { hz: 880, ms: 22 },
+      { hz: 1319, ms: 40 },
+    ],
+  },
+
+  back: {
+    gain: 0.16,
+    notes: [
+      { hz: 659, ms: 20 },
+      { hz: 440, ms: 34 },
+    ],
+  },
+
+  shiny: {
+    gain: 0.18,
+    notes: [
+      { hz: 1568, ms: 34 },
+      { hz: 2093, ms: 34 },
+      { hz: 2637, ms: 90 },
+    ],
+  },
+
+  trade: {
+    gain: 0.18,
+    notes: [
+      { hz: 988, ms: 26 },
+      { hz: 1319, ms: 26 },
+      { hz: 1760, ms: 72 },
+    ],
+  },
+
+  hatch: {
+    gain: 0.18,
+    notes: [
+      { hz: 523, ms: 28 },
+      { hz: 784, ms: 28 },
+      { hz: 1047, ms: 28 },
+      { hz: 1319, ms: 96 },
+    ],
+  },
+}
+
+export const CARD_WRITTEN_NOTICE = 'Trainer card written to'

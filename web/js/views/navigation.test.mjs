@@ -156,7 +156,7 @@ test('Should move around the bag and put it away again', () => {
   const ctx = aGame()
 
   ctx.setMode('team')
-  ctx.openBag()
+  ctx.openBag(0)
 
   press(ctx, 'down')
 

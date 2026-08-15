@@ -12,8 +12,6 @@ export const SSE_RETRY_MS = 2000
 
 export const KEEPALIVE_MS = 20_000
 
-export const CLIENT_HEADER = 'x-claudemon-client'
-
 export const MIME_TYPES = {
   '.html': 'text/html; charset=utf-8',
   '.css': 'text/css; charset=utf-8',
@@ -31,15 +29,17 @@ export const DEFAULT_MIME_TYPE = 'application/octet-stream'
 
 export const BODY_LIMIT_BYTES = 4_000_000
 
-export const STATIC_ROOTS = [
-  { prefix: '/sprites/', root: 'sprites' },
-  { prefix: '/data/', root: 'data' },
-  { prefix: '/sounds/', root: 'assets' },
-]
+export const INDEX_PATH = 'index.html'
 
 export const NO_STORE = 'no-store'
 
-export const SPRITE_CACHE_CONTROL = 'public, max-age=86400'
+export const SSE_HEADERS = {
+  'content-type': 'text/event-stream; charset=utf-8',
+  'cache-control': NO_STORE,
+  connection: 'keep-alive',
+}
+
+export const SPRITE_CACHE_CONTROL = 'public, max-age=31536000, immutable'
 
 export const SERVER_MESSAGES = {
   notFound: 'not found',

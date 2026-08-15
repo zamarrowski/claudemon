@@ -1,3 +1,5 @@
+import { PARTY_SORT } from './constants.mjs'
+import { levelOf } from './pokemon.mjs'
 import { randInt } from './rng.mjs'
 
 export const allPokemon = (save) => {
@@ -23,4 +25,20 @@ export const pickLevel = (rng, leadLevel, spread) => {
   const max = Math.min(spread.ceiling, Math.max(min, leadLevel + spread.above))
 
   return randInt(rng, min, max)
+}
+
+const byLevelThenIndex = (a, b) => {
+  const byLevel = levelOf(b.mon) - levelOf(a.mon)
+
+  if (byLevel !== 0) return byLevel
+
+  return a.index - b.index
+}
+
+export const sortedPartyEntries = (party, sort) => {
+  const entries = party.map((mon, index) => ({ mon, index }))
+
+  if (sort === PARTY_SORT.level) return entries.sort(byLevelThenIndex)
+
+  return entries
 }

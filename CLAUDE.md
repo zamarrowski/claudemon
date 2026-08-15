@@ -49,12 +49,15 @@ read `data/` from engine code.
 
 ### The battle seam
 
-The UI never calls `submitAction` itself. `createBattleFlow(session)` takes a session
-— `{ state, submit(action) }` — and `takeAction` goes through `session.submit`. Today
-the only implementation is `createLocalSession` in `src/battleSession.mjs`, which runs
-the engine in the browser. Because battles are seeded and their state is plain JSON,
-a remote session is the only thing a networked battle would need; keep that one
-chokepoint intact and do not let a view reach past it.
+The UI never mutates a battle itself. `createBattleFlow(session)` takes a session —
+`{ state, submit(action), switchIn(mon), sendOut(mon) }` — and every change to the
+battle goes through it. Today the only implementation is `createLocalSession` in
+`src/battleSession.mjs`, which runs the engine in the browser. Because battles are
+seeded and their state is plain JSON, a remote session is the only thing a networked
+battle would need. Keep every mutation behind those four methods: the moment one of
+them is bypassed — a view or the flow calling `submitAction`, `switchIn` or
+`sendOutAfterFaint` directly — a remote session desyncs on that action, and the seam
+is worth nothing.
 
 ## General Guidelines
 

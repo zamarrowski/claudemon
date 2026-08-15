@@ -139,11 +139,24 @@ test('Should hand the pushed events to the game, one handler per kind', () => {
   }
 
   const encounter = vi.fn()
-  const stop = listenForEvents({ encounter })
+  const save = vi.fn()
+  const stop = listenForEvents({ encounter, save })
 
-  listeners.encounter({ data: '{"species":16}' })
+  listeners.encounter({
+    data: '{"kind":"wild","species":16,"seed":3,"junk":true}',
+  })
 
-  expect(encounter).toHaveBeenCalledWith({ species: 16 })
+  expect(encounter.mock.calls[0][0].species).toBe(16)
+  expect(
+    encounter.mock.calls[0][0].junk,
+    'a pushed encounter is mapped like any other',
+  ).toBeUndefined()
+
+  listeners.save({ data: '{"money":10}' })
+
+  expect(save, 'the save is passed on whole').toHaveBeenCalledWith({
+    money: 10,
+  })
 
   stop()
 

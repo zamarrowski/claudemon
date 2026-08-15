@@ -1,4 +1,5 @@
-import { currentNotice } from '../src/node/update.mjs'
+import { updateCheckMode } from '../src/config.mjs'
+import { checkForUpdate, currentNotice } from '../src/node/update.mjs'
 import { HEARTBEAT_MS, POLL_MS, UPDATE_POLL_MS } from './constants.mjs'
 import {
   transformRequestActivity,
@@ -21,7 +22,7 @@ const noticeKey = (notice) => {
   return `${notice.kind}:${notice.version}`
 }
 
-export const createWatch = ({ game, hub }) => {
+export const createWatch = ({ game, hub, ask = checkForUpdate }) => {
   let lastEncounter = encounterKey(game.readCurrentEncounter())
   let lastActivity = activityKey(game.readActivity())
   let lastNotice = noticeKey(currentNotice())
@@ -49,7 +50,7 @@ export const createWatch = ({ game, hub }) => {
     hub.broadcast('activity', transformRequestActivity(activity))
   }
 
-  const pollNotice = () => {
+  const announceNotice = () => {
     const notice = currentNotice()
     const key = noticeKey(notice)
 
@@ -60,7 +61,22 @@ export const createWatch = ({ game, hub }) => {
     hub.broadcast('notice', notice)
   }
 
+  const pollNotice = async (atLaunch = false) => {
+    const config = game.currentConfig()
+
+    try {
+      await ask({
+        config,
+        force: atLaunch && updateCheckMode(config) === 'launch',
+      })
+    } catch {}
+
+    announceNotice()
+  }
+
   const poll = () => {
+    if (hub.size() === 0) return
+
     pollEncounter()
     pollActivity()
   }
@@ -71,6 +87,8 @@ export const createWatch = ({ game, hub }) => {
     timers.push(setInterval(pollNotice, UPDATE_POLL_MS))
 
     for (const timer of timers) timer.unref()
+
+    pollNotice(true)
 
     return timers
   }

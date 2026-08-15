@@ -1,11 +1,6 @@
 import { initData } from '../../src/data.mjs'
 import * as api from './api.mjs'
-import {
-  COUNTDOWN_MS,
-  FRAME_MS,
-  SWALLOWED_KEYS,
-  TICK_MS,
-} from './constants.mjs'
+import { FRAME_MS, SWALLOWED_KEYS, TICK_MS } from './constants.mjs'
 import { paint } from './dom.mjs'
 import { createPainter } from './painter.mjs'
 import { parseKey } from './keys.mjs'
@@ -86,7 +81,9 @@ const start = (bootstrap) => {
   }
 
   const tick = () => {
-    if (ctx.encounter || ctx.mode === 'starter') ctx.paint()
+    if (ctx.mode !== 'home') return
+
+    ctx.paint()
   }
 
   const tickFrames = () => {
@@ -107,7 +104,7 @@ const start = (bootstrap) => {
     update: ctx.receiveUpdateRun,
   })
 
-  setInterval(tick, Math.min(TICK_MS, COUNTDOWN_MS))
+  setInterval(tick, TICK_MS)
   setInterval(tickFrames, FRAME_MS)
 
   ctx.paint()

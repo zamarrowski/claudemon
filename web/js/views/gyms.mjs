@@ -8,7 +8,6 @@ import {
   badgeStrip,
   clampSelection,
   levelRangeLabel,
-  noteRows,
   typeBadge,
   wrap,
 } from './helpers.mjs'
@@ -47,7 +46,7 @@ export const draw = (ctx) => {
         </button>`
       })}
     </div>
-    ${notes(noteRows(ctx.gymMessage))} ${hints(GYMS_HINTS, ctx.version)}
+    ${notes(ctx.gymMessage)} ${hints(GYMS_HINTS, ctx.version)}
   </div>`
 }
 
@@ -63,15 +62,16 @@ export const onKey = (ctx, key) => {
   } else if (key.name === 'down' || key.name === 'j') {
     ctx.gymSelection = wrap(ctx.gymSelection + 1, GYMS.length)
     ctx.gymMessage = null
-  } else if (key.name === 'left') {
-    ctx.gymSelection = wrap(ctx.gymSelection - 1, GYMS.length)
-  } else if (key.name === 'right') {
-    ctx.gymSelection = wrap(ctx.gymSelection + 1, GYMS.length)
+  } else if (key.name === 'left' || key.name === 'right') {
+    ctx.gymSelection = wrap(
+      ctx.gymSelection + (key.name === 'left' ? -1 : 1),
+      GYMS.length,
+    )
+    ctx.gymMessage = null
   } else if (key.name === 'enter' || key.name === 'space') {
     ctx.startGymRun(GYMS[ctx.gymSelection].id)
   } else if (key.name === 'esc' || key.name === 'q') {
     ctx.gymMessage = null
-    ctx.homeSelection = 0
-    ctx.setMode('home')
+    ctx.goHome()
   }
 }

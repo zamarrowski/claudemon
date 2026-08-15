@@ -1,15 +1,10 @@
 import { readdirSync, readFileSync } from 'node:fs'
-import { dirname, join } from 'node:path'
-import { fileURLToPath } from 'node:url'
+import { join } from 'node:path'
 import { transformResponseManifest } from '../transformers.mjs'
 import { compareVersions } from '../version.mjs'
-import { PLUGIN_CACHE } from './paths.mjs'
+import { APP_DIR, PLUGIN_CACHE } from './paths.mjs'
 
-export const APP_ROOT = join(
-  dirname(fileURLToPath(import.meta.url)),
-  '..',
-  '..',
-)
+export const APP_ROOT = APP_DIR
 
 const readManifestFile = (root) => {
   try {

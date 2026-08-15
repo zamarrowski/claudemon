@@ -6,17 +6,12 @@ import { useSandboxHome } from '../../test/sandboxHome.mjs'
 const sandbox = useSandboxHome('claudemon-card-')
 
 const { GYMS, TYPE_COLORS } = await import('../constants.mjs')
-const { isDataReady } = await import('../data.mjs')
 const { decodePng } = await import('./png.mjs')
 const { createPokemon } = await import('../pokemon.mjs')
 const { makeRng } = await import('../rng.mjs')
 const { CARD_HEIGHT, CARD_PALETTE, CARD_WIDTH } =
   await import('./constants.mjs')
 const { drawCard, writeCard } = await import('./card.mjs')
-
-if (!isDataReady()) {
-  throw new Error('dataset missing — run: node tools/fetch-data.mjs')
-}
 
 const aSave = (party, badges, achievements = []) => {
   return {

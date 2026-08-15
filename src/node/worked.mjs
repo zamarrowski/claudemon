@@ -1,21 +1,13 @@
-import { mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs'
-import { EMPTY_WORKED } from './constants.mjs'
+import { EMPTY_WORKED } from '../constants.mjs'
 import {
   transformRequestWriteWorked,
   transformResponseWorked,
 } from '../transformers.mjs'
-import { HOME, WORKED_FILE } from './paths.mjs'
-
-const readWorkedFile = () => {
-  try {
-    return JSON.parse(readFileSync(WORKED_FILE, 'utf8'))
-  } catch {
-    return null
-  }
-}
+import { readJson, writeJson } from './files.mjs'
+import { WORKED_FILE } from './paths.mjs'
 
 export const readWorked = () => {
-  const worked = transformResponseWorked(readWorkedFile())
+  const worked = transformResponseWorked(readJson(WORKED_FILE))
 
   if (!worked) return { ...EMPTY_WORKED }
 
@@ -24,12 +16,7 @@ export const readWorked = () => {
 
 const writeWorked = (worked) => {
   try {
-    mkdirSync(HOME, { recursive: true })
-
-    const tmp = `${WORKED_FILE}.${process.pid}.tmp`
-
-    writeFileSync(tmp, JSON.stringify(transformRequestWriteWorked(worked)))
-    renameSync(tmp, WORKED_FILE)
+    writeJson(WORKED_FILE, transformRequestWriteWorked(worked))
   } catch {}
 
   return worked

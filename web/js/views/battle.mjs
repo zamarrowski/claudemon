@@ -1,24 +1,29 @@
 import { ballSteps } from '../../../src/ballThrow.mjs'
+import { moveIsBlocked } from '../../../src/battleFlow.mjs'
 import { ITEMS } from '../../../src/constants.mjs'
 import { move as moveData } from '../../../src/data.mjs'
 import { expProgress } from '../../../src/exp.mjs'
-import { displayName, levelOf } from '../../../src/pokemon.mjs'
+import { displayName, isFainted, levelOf } from '../../../src/pokemon.mjs'
 import { monsLeft, trainerLabel } from '../../../src/trainer.mjs'
-import { isMoveDisabled } from '../../../src/volatile.mjs'
 import { html } from '../dom.mjs'
-import { monSpriteUrl, trainerSpriteUrl } from '../sprites.mjs'
+import { trainerSpriteUrl } from '../sprites.mjs'
 import {
+  BALL_ARC,
+  BALL_HOME,
+  BALL_TARGET,
   BATTLE_MAIN_MENU,
   BATTLE_PROMPTS,
   CAUGHT_GLYPH,
   EMPTY_BAG_MESSAGE,
   FAINTED_TAG,
 } from './constants.mjs'
-import { clampSelection, hpBar, typeBadge, wrap } from './helpers.mjs'
-
-const BALL_HOME = { left: 18, top: 74 }
-const BALL_TARGET = { left: 72, top: 28 }
-const BALL_ARC = 42
+import {
+  clampSelection,
+  hpBar,
+  monSprite,
+  typeBadge,
+  wrap,
+} from './helpers.mjs'
 
 export const ballPosition = (step) => {
   if (!step || step.kind !== 'throw') return BALL_TARGET
@@ -133,11 +138,7 @@ const foeSprite = (battle, step) => {
     data-hit="${battle.effect?.side === 'foe'}"
     data-hidden="${step?.hideFoe === true}"
   >
-    <img
-      src="${monSpriteUrl('front', mon.species, mon.shiny)}"
-      data-fallback="${monSpriteUrl('front', mon.species, false)}"
-      alt=""
-    />
+    ${monSprite(mon, 'battle')}
   </div>`
 }
 
@@ -148,11 +149,7 @@ const playerSprite = (battle) => {
     class="gb__mon gb__mon--player"
     data-hit="${battle.effect?.side === 'player'}"
   >
-    <img
-      src="${monSpriteUrl('back', mon.species, mon.shiny)}"
-      data-fallback="${monSpriteUrl('back', mon.species, false)}"
-      alt=""
-    />
+    ${monSprite(mon, 'battle', 'back')}
   </div>`
 }
 
@@ -176,7 +173,7 @@ const moveRows = (battle) => {
   return html`<div class="battle-menu battle-menu--moves">
     ${actor.mon.moves.map((slot, index) => {
       const data = moveData(slot.move)
-      const blocked = slot.pp === 0 || isMoveDisabled(actor, index)
+      const blocked = moveIsBlocked(actor, index)
 
       return html`<button
         class="move"
@@ -218,7 +215,7 @@ const optionRows = (labels, selection) => {
 
 const partyLabels = (save) => {
   return save.party.map((mon) => {
-    const fainted = mon.hp <= 0 ? ` ${FAINTED_TAG}` : ''
+    const fainted = isFainted(mon) ? ` ${FAINTED_TAG}` : ''
 
     return `${displayName(mon).toUpperCase()} Lv${levelOf(mon)} ${mon.hp}/${mon.stats.hp}${fainted}`
   })

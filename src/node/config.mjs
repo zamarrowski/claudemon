@@ -1,25 +1,11 @@
-import {
-  mkdirSync,
-  readFileSync,
-  renameSync,
-  unlinkSync,
-  writeFileSync,
-} from 'node:fs'
 import { DEFAULT_CONFIG } from '../constants.mjs'
 import { withDefaults } from '../config.mjs'
 import {
   transformRequestWriteConfig,
   transformResponseConfig,
 } from '../transformers.mjs'
-import { CONFIG_FILE, HOME } from './paths.mjs'
-
-const readConfigFile = () => {
-  try {
-    return JSON.parse(readFileSync(CONFIG_FILE, 'utf8'))
-  } catch {
-    return null
-  }
-}
+import { readJson, writeAtomic } from './files.mjs'
+import { CONFIG_FILE } from './paths.mjs'
 
 const withStored = (stored, patch) => {
   if (!stored) return patch
@@ -28,7 +14,7 @@ const withStored = (stored, patch) => {
 }
 
 export const loadConfig = () => {
-  const stored = transformResponseConfig(readConfigFile())
+  const stored = transformResponseConfig(readJson(CONFIG_FILE))
 
   if (!stored) return withDefaults(DEFAULT_CONFIG)
 
@@ -36,23 +22,14 @@ export const loadConfig = () => {
 }
 
 export const saveConfig = (patch) => {
-  const merged = withStored(transformResponseConfig(readConfigFile()), patch)
+  const merged = withStored(
+    transformResponseConfig(readJson(CONFIG_FILE)),
+    patch,
+  )
 
-  mkdirSync(HOME, { recursive: true })
-
-  const tmp = `${CONFIG_FILE}.${process.pid}.tmp`
   const payload = JSON.stringify(transformRequestWriteConfig(merged), null, 2)
 
-  try {
-    writeFileSync(tmp, `${payload}\n`)
-    renameSync(tmp, CONFIG_FILE)
-  } catch (error) {
-    try {
-      unlinkSync(tmp)
-    } catch {}
-
-    throw error
-  }
+  writeAtomic(CONFIG_FILE, `${payload}\n`)
 
   return withDefaults(merged)
 }

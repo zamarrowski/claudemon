@@ -10,13 +10,14 @@ import {
 } from '../../../src/state.mjs'
 import { trainerLabel } from '../../../src/trainer.mjs'
 import { html } from '../dom.mjs'
-import { monSpriteUrl, trainerSpriteUrl } from '../sprites.mjs'
+import { trainerSpriteUrl } from '../sprites.mjs'
 import { hints, topbar } from './chrome.mjs'
 import {
   ACTIVITY_MESSAGES,
   BASE_MENU,
   ENCOUNTER_MESSAGES,
   FIGHT_MENU_LABEL,
+  GRASS_BLADE,
   GRASS_BLADES,
   GRASS_MESSAGES,
   HOME_HINTS,
@@ -25,7 +26,7 @@ import {
   UPDATE_NOTICES,
   WALK_HINTS,
 } from './constants.mjs'
-import { clampSelection, hpBar, wrap } from './helpers.mjs'
+import { clampSelection, hpBar, speciesSprite, wrap } from './helpers.mjs'
 
 export const menuItems = (ctx) => {
   const base = isWorking(ctx.activity)
@@ -50,7 +51,7 @@ export const secondsLeft = (encounter, now = Date.now()) => {
 }
 
 export const activityLabel = (activity, now = Date.now()) => {
-  if (!activity || activity.state === 'unknown') return null
+  if (activity.state === 'unknown') return null
 
   const age =
     typeof activity.since === 'number' ? elapsed(now - activity.since) : null
@@ -112,14 +113,10 @@ const encounterSprite = (encounter) => {
     />`
   }
 
-  const id = encounterSpecies(encounter)
-
-  return html`<img
-    class="sprite sprite--lg"
-    src="${monSpriteUrl('front', id, encounter.shiny)}"
-    data-fallback="${monSpriteUrl('front', id, false)}"
-    alt=""
-  />`
+  return html`${speciesSprite(encounterSpecies(encounter), {
+    size: 'lg',
+    shiny: encounter.shiny,
+  })}`
 }
 
 const encounterHeadline = (encounter) => {
@@ -136,10 +133,13 @@ const encounterHeadline = (encounter) => {
 }
 
 const grass = (walking) => {
-  const blades = Array.from({ length: GRASS_BLADES }, () => 'ʬ')
+  const blades = Array.from(
+    { length: GRASS_BLADES },
+    () => html`<span>${GRASS_BLADE}</span>`,
+  )
 
   return html`<div class="field__grass" data-walking="${walking}">
-    ${blades.map((blade) => html`<span>${blade}</span>`)}
+    ${blades}
   </div>`
 }
 

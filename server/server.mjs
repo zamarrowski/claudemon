@@ -23,9 +23,9 @@ export const createServer = ({ game, onQuit = () => {}, makeUpdateRun }) => {
     const route = matchRoute(routes, request.method, pathname)
 
     if (route) {
-      const handled = route.handle(request, response)
-
-      if (handled?.catch) handled.catch((error) => failRequest(response, error))
+      Promise.resolve(route.handle(request, response)).catch((error) =>
+        failRequest(response, error),
+      )
 
       return
     }

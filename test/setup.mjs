@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { DATASET_MISSING_MESSAGE } from '../src/constants.mjs'
+import { DATASET_MISSING_MESSAGE } from '../src/node/constants.mjs'
 import { initData } from '../src/data.mjs'
 
 const bundled = join(dirname(fileURLToPath(import.meta.url)), '..', 'data')

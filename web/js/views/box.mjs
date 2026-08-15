@@ -1,6 +1,6 @@
 import { displayName, levelOf } from '../../../src/pokemon.mjs'
 import { html } from '../dom.mjs'
-import { hints, notes, screenHead } from './chrome.mjs'
+import { hints, monDetail, notes, screenHead } from './chrome.mjs'
 import {
   BOX_HINTS,
   BOX_NOTES,
@@ -11,13 +11,11 @@ import {
   clampSelection,
   hpBar,
   nextPartySort,
-  noteRows,
   partyEntryAt,
   partySelectionAfterSort,
   sortedPartyEntries,
   wrap,
 } from './helpers.mjs'
-import { monDetail } from './team.mjs'
 
 export const draw = (ctx) => {
   if (!ctx.save.box.length) {
@@ -25,7 +23,7 @@ export const draw = (ctx) => {
       ${screenHead(BOX_TITLE)}
       <p class="notice">${BOX_NOTES.empty}</p>
       <p class="hint">${BOX_NOTES.waitingHere}</p>
-      ${notes(noteRows(ctx.boxMessage))} ${hints(BOX_HINTS, ctx.version)}
+      ${notes(ctx.boxMessage)} ${hints(BOX_HINTS, ctx.version)}
     </div>`
   }
 
@@ -52,7 +50,7 @@ export const draw = (ctx) => {
               </button>`,
           )}
         </div>
-        ${notes(noteRows(ctx.boxMessage))}
+        ${notes(ctx.boxMessage)}
       </div>
       ${monDetail(entry.mon)}
     </div>

@@ -1,4 +1,3 @@
-import { recordAchievements } from '../../src/achievements.mjs'
 import { isWorking } from '../../src/activity.mjs'
 import { createBattle } from '../../src/battle.mjs'
 import {
@@ -17,7 +16,6 @@ import {
   DAYCARE_MESSAGES,
   DAYCARE_STEPS_PER_SAVE,
   FRAMES_PER_DAYCARE_STEP,
-  FRAMES_PER_STEP,
   GYM_MESSAGES,
   HOME_NOTICES,
   ITEMS,
@@ -46,7 +44,7 @@ import {
   isGymCleared,
   rollbackGymRun,
 } from '../../src/gym.mjs'
-import { canSpare } from '../../src/helpers.mjs'
+import { canSpare, sortedPartyEntries } from '../../src/helpers.mjs'
 import { applyItem } from '../../src/itemUse.mjs'
 import { createPokemon, displayName } from '../../src/pokemon.mjs'
 import { describeStep } from '../../src/progression.mjs'
@@ -68,11 +66,8 @@ import {
 import { giveAway, takeIn } from '../../src/trade.mjs'
 import { sentOutLine, trainerClass, trainerLabel } from '../../src/trainer.mjs'
 import { updateNotice } from '../../src/version.mjs'
-import { sortedPartyEntries } from './views/helpers.mjs'
-
-const clampToList = (selection, list) => {
-  return Math.min(selection, Math.max(0, list.length - 1))
-}
+import { CARD_WRITTEN_NOTICE } from './constants.mjs'
+import { clampSelection } from './views/helpers.mjs'
 
 const arrivalWording = (where) => {
   if (where === 'box') return BATTLE_MESSAGES.wentToBox
@@ -166,6 +161,17 @@ const trainerBattle = (save, opponent, seed, lead) => {
   }
 }
 
+const openingBattle = (save, encounter, lead) => {
+  if (encounter.kind !== 'trainer') return wildBattle(save, encounter, lead)
+
+  return trainerBattle(
+    save,
+    encounterTrainer(encounter.trainer),
+    encounter.seed,
+    lead,
+  )
+}
+
 const layNextEgg = (ctx) => {
   if (!eggFromPair(ctx.save, ctx.rng)) return false
 
@@ -211,6 +217,8 @@ const leaveForGymList = (ctx, gymId, message) => {
   ctx.setMode('gyms')
 }
 
+const SAVE_EVERY_FRAMES = FRAMES_PER_DAYCARE_STEP * DAYCARE_STEPS_PER_SAVE
+
 export const createStore = ({
   bootstrap,
   api,
@@ -219,7 +227,6 @@ export const createStore = ({
   closeWindow = () => window.close(),
 }) => {
   let daycareFrames = 0
-  let daycareSteps = 0
 
   const ctx = {
     version: bootstrap.version,
@@ -233,8 +240,6 @@ export const createStore = ({
     rng: makeRng(randomSeed()),
 
     mode: bootstrap.save ? 'home' : 'starter',
-
-    scene: { step: 0, frames: 0 },
 
     homeSelection: 0,
     dexSelection: 0,
@@ -253,6 +258,7 @@ export const createStore = ({
     daycareMessage: null,
 
     bagSelection: null,
+    bagTarget: 0,
     bagMessage: null,
 
     shopSelection: 0,
@@ -292,11 +298,15 @@ export const createStore = ({
     ctx.paint()
   }
 
+  ctx.goHome = () => {
+    ctx.homeSelection = 0
+    ctx.setMode('home')
+  }
+
   ctx.persist = () => {
     if (ctx.gym) return
     if (!ctx.save) return
 
-    recordAchievements(ctx.save, ctx.worked)
     api.putSave(ctx.save)
   }
 
@@ -413,8 +423,7 @@ export const createStore = ({
 
   ctx.finishUpdate = () => {
     ctx.update = null
-    ctx.homeSelection = 0
-    ctx.setMode('home')
+    ctx.goHome()
   }
 
   ctx.finishSetup = (starterId) => {
@@ -486,7 +495,7 @@ export const createStore = ({
     try {
       const { path } = await api.askForCard()
 
-      ctx.notice = `Trainer card written to ${path}`
+      ctx.notice = `${CARD_WRITTEN_NOTICE} ${path}`
     } catch {
       ctx.notice = HOME_NOTICES.cardFailed
     }
@@ -520,7 +529,7 @@ export const createStore = ({
       return
     }
 
-    ctx.teamSelection = clampToList(ctx.teamSelection, ctx.save.party)
+    ctx.teamSelection = clampSelection(ctx.teamSelection, ctx.save.party.length)
     ctx.boxMessage = `${displayName(mon).toUpperCase()} went to the box.`
     ctx.persist()
   }
@@ -535,7 +544,7 @@ export const createStore = ({
       return
     }
 
-    ctx.boxSelection = clampToList(ctx.boxSelection, ctx.save.box)
+    ctx.boxSelection = clampSelection(ctx.boxSelection, ctx.save.box.length)
     ctx.boxMessage = `${displayName(mon).toUpperCase()} joined your team.`
     ctx.persist()
   }
@@ -575,8 +584,8 @@ export const createStore = ({
     const laid = eggFromPair(ctx.save, ctx.rng)
     const left = `${displayName(result.mon).toUpperCase()} ${DAYCARE_MESSAGES.leftHere}`
 
-    ctx.teamSelection = clampToList(ctx.teamSelection, ctx.save.party)
-    ctx.boxSelection = clampToList(ctx.boxSelection, ctx.save.box)
+    ctx.teamSelection = clampSelection(ctx.teamSelection, ctx.save.party.length)
+    ctx.boxSelection = clampSelection(ctx.boxSelection, ctx.save.box.length)
     ctx.daycareStep = 'slots'
     ctx.daycareSelection = ctx.save.daycare.slots.length - 1
     ctx.daycarePickSelection = 0
@@ -611,14 +620,12 @@ export const createStore = ({
 
     if (daycareFrames % FRAMES_PER_DAYCARE_STEP !== 0) return false
 
-    daycareSteps++
-
     raiseDaycare(ctx.save)
 
     if (!egg && layNextEgg(ctx)) return true
     if (egg && advanceEgg(ctx, egg)) return true
 
-    if (daycareSteps % DAYCARE_STEPS_PER_SAVE === 0) ctx.persist()
+    if (daycareFrames % SAVE_EVERY_FRAMES === 0) ctx.persist()
 
     return ctx.mode === 'daycare'
   }
@@ -628,12 +635,13 @@ export const createStore = ({
     ctx.bagMessage = null
   }
 
-  ctx.openBag = () => {
+  ctx.openBag = (target) => {
     if (itemsInBag(ctx.save).length === 0) {
       ctx.bagMessage = BAG_MESSAGES.empty
       return
     }
 
+    ctx.bagTarget = target
     ctx.bagSelection = 0
     ctx.bagMessage = null
   }
@@ -643,8 +651,8 @@ export const createStore = ({
     ctx.bagMessage = null
   }
 
-  ctx.useFromBag = (key, index) => {
-    const mon = ctx.save.party[index]
+  ctx.useFromBag = (key) => {
+    const mon = ctx.save.party[ctx.bagTarget]
 
     if (!mon) return
 
@@ -699,8 +707,8 @@ export const createStore = ({
 
     ctx.persist()
 
-    ctx.teamSelection = clampToList(ctx.teamSelection, ctx.save.party)
-    ctx.boxSelection = clampToList(ctx.boxSelection, ctx.save.box)
+    ctx.teamSelection = clampSelection(ctx.teamSelection, ctx.save.party.length)
+    ctx.boxSelection = clampSelection(ctx.boxSelection, ctx.save.box.length)
 
     ctx.tradeGone = given.mon
     ctx.tradeMessage = null
@@ -792,20 +800,12 @@ export const createStore = ({
     ctx.encounter = null
     api.dropEncounter()
 
-    const { state, intro } =
-      encounter.kind === 'trainer'
-        ? trainerBattle(
-            ctx.save,
-            encounterTrainer(encounter.trainer),
-            encounter.seed,
-            lead,
-          )
-        : wildBattle(ctx.save, encounter, lead)
+    const opened = openingBattle(ctx.save, encounter, lead)
 
-    ctx.battle = createBattleFlow(createLocalSession(state))
+    ctx.battle = createBattleFlow(createLocalSession(opened.state))
 
     ctx.save.stats.battles++
-    queueMessages(ctx, intro)
+    queueMessages(ctx, opened.intro)
     ctx.playMusic('battle')
     ctx.setMode('battle')
   }
@@ -904,22 +904,11 @@ export const createStore = ({
 
   ctx.chooseBattleOption = () => chooseBattleOption(ctx)
 
-  ctx.tickScene = () => {
-    if (ctx.mode !== 'home' || ctx.activity.state !== 'working') return false
-
-    ctx.scene.frames++
-
-    if (ctx.scene.frames % FRAMES_PER_STEP !== 0) return false
-
-    ctx.scene.step++
-
-    return true
-  }
-
   ctx.tickFrame = () => {
-    const ticks = [ctx.tickBattle, ctx.tickScene, ctx.tickDaycare]
+    const battle = ctx.tickBattle()
+    const daycare = ctx.tickDaycare()
 
-    return ticks.map((tick) => tick()).some(Boolean)
+    return battle || daycare
   }
 
   return ctx

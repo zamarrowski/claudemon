@@ -1,5 +1,6 @@
 import {
   BURST_SPREADS,
+  CLICK_STEPS,
   FALL_FRAMES,
   SHAKE_TILTS,
   THROW_FRAMES,
@@ -34,14 +35,6 @@ const shakeSteps = (shakes) => {
   return steps
 }
 
-const clickSteps = () => {
-  return [
-    { kind: 'click', lit: true, hideFoe: true },
-    { kind: 'click', lit: false, hideFoe: true },
-    { kind: 'click', lit: true, hideFoe: true },
-  ]
-}
-
 const burstSteps = () => {
   const steps = []
 
@@ -56,6 +49,6 @@ export const ballSteps = ({ shakes = 0, caught = false }) => {
     ...throwSteps(),
     ...fallSteps(),
     ...shakeSteps(shakes),
-    ...(caught ? clickSteps() : burstSteps()),
+    ...(caught ? CLICK_STEPS : burstSteps()),
   ]
 }

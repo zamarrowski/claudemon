@@ -1,10 +1,15 @@
-import { BODY_LIMIT_BYTES, NO_STORE, SERVER_MESSAGES } from './constants.mjs'
+import {
+  BODY_LIMIT_BYTES,
+  MIME_TYPES,
+  NO_STORE,
+  SERVER_MESSAGES,
+} from './constants.mjs'
 
 export const sendJson = (response, payload, status = 200) => {
   const body = JSON.stringify(payload)
 
   response.writeHead(status, {
-    'content-type': 'application/json; charset=utf-8',
+    'content-type': MIME_TYPES['.json'],
     'cache-control': NO_STORE,
   })
   response.end(body)

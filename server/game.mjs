@@ -1,3 +1,4 @@
+import { recordAchievements } from '../src/achievements.mjs'
 import { summariseActivity } from '../src/activity.mjs'
 import { encounterTtlMs } from '../src/config.mjs'
 import { loadConfig, saveConfig } from '../src/node/config.mjs'
@@ -49,6 +50,7 @@ export const createGame = () => {
   const persist = (next) => {
     save = next
 
+    recordAchievements(save, readWorked())
     saveGame(save)
 
     return save

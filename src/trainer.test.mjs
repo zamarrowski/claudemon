@@ -1,7 +1,6 @@
 import { expect, test } from 'vitest'
 
 import { TRAINER_CLASSES } from './constants.mjs'
-import { isDataReady } from './data.mjs'
 import { createPokemon } from './pokemon.mjs'
 import { makeRng } from './rng.mjs'
 import {
@@ -11,10 +10,6 @@ import {
   trainerLabel,
   trainerPrize,
 } from './trainer.mjs'
-
-if (!isDataReady()) {
-  throw new Error('dataset missing — run: node tools/fetch-data.mjs')
-}
 
 const PIKACHU_ONLY = [{ id: 25, name: 'Pikachu', weight: 1 }]
 

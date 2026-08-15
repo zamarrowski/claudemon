@@ -1,5 +1,4 @@
 import { isWorking } from './activity.mjs'
-import { sendOutAfterFaint, switchIn } from './battle.mjs'
 import {
   BATTLE_ITEM_KINDS,
   BATTLE_MESSAGES,
@@ -297,6 +296,10 @@ const usableBattleItems = (save, trainer) => {
   return [...ballsInBag(save), ...others]
 }
 
+export const moveIsBlocked = (actor, index) => {
+  return actor.mon.moves[index].pp <= 0 || isMoveDisabled(actor, index)
+}
+
 const chooseMove = (ctx) => {
   const battle = ctx.battle
   const slot = battle.state.player.mon.moves[battle.selection]
@@ -387,7 +390,7 @@ const choosePartyMember = (ctx) => {
   }
 
   setLead(ctx.save, index)
-  switchIn(battle.state, chosen)
+  battle.session.switchIn(chosen)
   syncBars(battle)
 
   queueMessages(ctx, [`Go, ${displayName(chosen).toUpperCase()}!`])
@@ -495,7 +498,7 @@ const processNextStep = (ctx) => {
   }
 
   if (step.kind === 'send-out') {
-    sendOutAfterFaint(battle.state, step.mon)
+    battle.session.sendOut(step.mon)
 
     battle.postSteps = null
     syncBars(battle)
@@ -556,6 +559,5 @@ const finishBattle = (ctx) => {
 
   ctx.persist()
 
-  ctx.homeSelection = 0
-  ctx.setMode('home')
+  ctx.goHome()
 }

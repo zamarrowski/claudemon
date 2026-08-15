@@ -1,15 +1,14 @@
 import { ITEMS } from '../../../src/constants.mjs'
 import { itemsInBag } from '../../../src/shop.mjs'
 import { html } from '../dom.mjs'
-import { hints, notes, screenHead } from './chrome.mjs'
+import { hints, monDetail, notes, partyRows, screenHead } from './chrome.mjs'
 import { BAG_TITLE, TEAM_BAG_HINTS } from './constants.mjs'
-import { clampSelection, noteRows, partyEntryAt, wrap } from './helpers.mjs'
-import { monDetail, partyRows } from './team.mjs'
+import { clampSelection, wrap } from './helpers.mjs'
 
 export const draw = (ctx) => {
   const bag = itemsInBag(ctx.save)
   const selection = clampSelection(ctx.bagSelection, bag.length)
-  const entry = partyEntryAt(ctx.save.party, ctx.teamSelection, ctx.teamSort)
+  const mon = ctx.save.party[ctx.bagTarget]
 
   return html`<div class="screen">
     ${screenHead(BAG_TITLE)}
@@ -35,9 +34,9 @@ export const draw = (ctx) => {
             )}
           </div>
         </section>
-        ${notes(noteRows(ctx.bagMessage))}
+        ${notes(ctx.bagMessage)}
       </div>
-      ${monDetail(entry.mon)}
+      ${monDetail(mon)}
     </div>
     ${hints(TEAM_BAG_HINTS, ctx.version)}
   </div>`
@@ -59,9 +58,7 @@ export const onKey = (ctx, key) => {
     ctx.bagSelection = wrap(index + 1, bag.length)
     ctx.bagMessage = null
   } else if (key.name === 'enter' || key.name === 'space') {
-    const entry = partyEntryAt(ctx.save.party, ctx.teamSelection, ctx.teamSort)
-
-    ctx.useFromBag(bag[index], entry.index)
+    ctx.useFromBag(bag[index])
   } else if (key.name === 'esc' || key.name === 'q' || key.name === 'i') {
     ctx.closeBag()
   }

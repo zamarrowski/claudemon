@@ -9,9 +9,9 @@ import {
 } from '../src/transformers.mjs'
 import { isSaveShaped } from '../src/state.mjs'
 import { newTradeId } from '../src/trade.mjs'
-import { CLIENT_HEADER, HOST, SERVER_MESSAGES } from './constants.mjs'
+import { CLIENT_HEADER } from '../src/constants.mjs'
+import { HOST, SERVER_MESSAGES } from './constants.mjs'
 import { readBody, sendEmpty, sendError, sendJson } from './respond.mjs'
-import { sendFile } from './static.mjs'
 import {
   transformRequestUpdateRun,
   transformResponseGift,
@@ -92,20 +92,6 @@ export const createRoutes = ({
     sendJson(response, { path })
   }
 
-  const getCard = (request, response) => {
-    const save = game.currentSave()
-
-    if (!save) {
-      sendError(response, 409, SERVER_MESSAGES.noSave)
-
-      return
-    }
-
-    const path = writeCard(save, CARD_FILE)
-
-    sendFile(response, { path, cacheControl: 'no-store' })
-  }
-
   const postTradeCode = async (request, response) => {
     const gift = transformResponseGift(await readBody(request))
 
@@ -144,10 +130,6 @@ export const createRoutes = ({
     sendJson(response, transformRequestUpdateRun(update))
   }
 
-  const getUpdate = (request, response) => {
-    sendJson(response, transformRequestUpdateRun(update))
-  }
-
   const postQuit = (request, response) => {
     sendEmpty(response)
     onQuit()
@@ -160,11 +142,9 @@ export const createRoutes = ({
     { method: 'PUT', path: '/api/config', handle: putConfig },
     { method: 'DELETE', path: '/api/encounter', handle: deleteEncounter },
     { method: 'POST', path: '/api/card', handle: postCard },
-    { method: 'GET', path: '/api/card.png', handle: getCard },
     { method: 'POST', path: '/api/trade/code', handle: postTradeCode },
     { method: 'POST', path: '/api/trade/read', handle: postTradeRead },
     { method: 'POST', path: '/api/update', handle: postUpdate },
-    { method: 'GET', path: '/api/update', handle: getUpdate },
     { method: 'POST', path: '/api/quit', handle: postQuit },
   ]
 }

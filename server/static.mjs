@@ -2,6 +2,7 @@ import { createReadStream, statSync } from 'node:fs'
 import { extname, join, resolve, sep } from 'node:path'
 import {
   BUNDLED_ASSETS_DIR,
+  DATA_DIR,
   ENGINE_DIR,
   SPRITES_DIR,
   WEB_DIR,
@@ -9,10 +10,36 @@ import {
 } from '../src/node/paths.mjs'
 import {
   DEFAULT_MIME_TYPE,
+  INDEX_PATH,
   MIME_TYPES,
   NO_STORE,
   SPRITE_CACHE_CONTROL,
 } from './constants.mjs'
+
+const ROOTS = [
+  {
+    prefix: '/sprites/',
+    dir: SPRITES_DIR,
+    cacheControl: SPRITE_CACHE_CONTROL,
+  },
+  {
+    prefix: '/sounds/',
+    dir: BUNDLED_ASSETS_DIR,
+    cacheControl: SPRITE_CACHE_CONTROL,
+  },
+  {
+    prefix: '/src/',
+    dir: ENGINE_DIR,
+    cacheControl: NO_STORE,
+    hidden: 'node/',
+  },
+  {
+    prefix: '/data/',
+    dir: DATA_DIR,
+    cacheControl: NO_STORE,
+    lookUp: dataFile,
+  },
+]
 
 const within = (root, relative) => {
   const target = resolve(join(root, relative))
@@ -30,60 +57,33 @@ const fileAt = (path) => {
   }
 }
 
-const under = (root, pathname, prefix) => {
-  const target = within(root, pathname.slice(prefix.length))
+const fileIn = (root, relative) => {
+  const target = within(root.dir, relative)
 
   if (!target) return null
+  if (root.hidden && relative.startsWith(root.hidden)) return null
+  if (root.lookUp) return fileAt(root.lookUp(relative))
 
   return fileAt(target)
 }
 
 export const resolveAsset = (pathname) => {
-  if (pathname.startsWith('/sprites/')) {
-    const path = under(SPRITES_DIR, pathname, '/sprites/')
+  const root = ROOTS.find((entry) => pathname.startsWith(entry.prefix))
 
-    if (path) return { path, cacheControl: SPRITE_CACHE_CONTROL }
+  if (root) {
+    const path = fileIn(root, pathname.slice(root.prefix.length))
 
-    return null
+    if (!path) return null
+
+    return { path, cacheControl: root.cacheControl }
   }
 
-  if (pathname.startsWith('/sounds/')) {
-    const path = under(BUNDLED_ASSETS_DIR, pathname, '/sounds/')
+  const page = { dir: WEB_DIR }
+  const path = fileIn(page, pathname === '/' ? INDEX_PATH : pathname.slice(1))
 
-    if (path) return { path, cacheControl: SPRITE_CACHE_CONTROL }
+  if (!path) return null
 
-    return null
-  }
-
-  if (pathname.startsWith('/src/')) {
-    const relative = pathname.slice('/src/'.length)
-
-    if (relative.startsWith('node/')) return null
-
-    const path = under(ENGINE_DIR, pathname, '/src/')
-
-    if (path) return { path, cacheControl: NO_STORE }
-
-    return null
-  }
-
-  if (pathname.startsWith('/data/')) {
-    const name = pathname.slice('/data/'.length)
-
-    if (name.includes('/') || name.includes('..')) return null
-
-    const path = fileAt(dataFile(name))
-
-    if (path) return { path, cacheControl: NO_STORE }
-
-    return null
-  }
-
-  const path = under(WEB_DIR, pathname === '/' ? '/index.html' : pathname, '/')
-
-  if (path) return { path, cacheControl: NO_STORE }
-
-  return null
+  return { path, cacheControl: NO_STORE }
 }
 
 export const contentTypeOf = (path) => {

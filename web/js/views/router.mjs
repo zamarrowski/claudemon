@@ -1,4 +1,4 @@
-import { BAG_MODES } from '../../../src/constants.mjs'
+import { BAG_MODES } from './constants.mjs'
 import * as bagView from './bag.mjs'
 import * as battleView from './battle.mjs'
 import * as boxView from './box.mjs'

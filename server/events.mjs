@@ -1,10 +1,4 @@
-import { KEEPALIVE_MS, SSE_RETRY_MS } from './constants.mjs'
-
-const SSE_HEADERS = {
-  'content-type': 'text/event-stream; charset=utf-8',
-  'cache-control': 'no-store',
-  connection: 'keep-alive',
-}
+import { KEEPALIVE_MS, SSE_HEADERS, SSE_RETRY_MS } from './constants.mjs'
 
 const frame = (type, payload) => {
   return `event: ${type}\ndata: ${JSON.stringify(payload)}\n\n`

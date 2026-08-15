@@ -4,6 +4,7 @@ import { mkdirSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { createGame } from '../server/game.mjs'
 import { createServer, portFromEnv } from '../server/server.mjs'
+import { bold, brightYellow, dim } from '../src/node/ansi.mjs'
 import {
   CARD_NO_OPEN_FLAG,
   CARD_NO_SAVE_HINT,
@@ -14,8 +15,7 @@ import {
   DATASET_MISSING_MESSAGE,
   SERVING_HINT,
   SERVING_PREFIX,
-} from '../src/constants.mjs'
-import { bold, brightYellow, dim } from '../src/node/ansi.mjs'
+} from '../src/node/constants.mjs'
 import { openUrl } from '../src/node/browser.mjs'
 import { writeCard } from '../src/node/card.mjs'
 import { loadDataset } from '../src/node/dataset.mjs'

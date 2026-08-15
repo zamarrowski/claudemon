@@ -1,7 +1,7 @@
 import { spawnSync } from 'node:child_process'
 import { encounterTtlMs } from '../src/config.mjs'
 import { loadConfig } from '../src/node/config.mjs'
-import { TRAINER_MESSAGES } from '../src/constants.mjs'
+import { KANTO_TOTAL, TRAINER_MESSAGES } from '../src/constants.mjs'
 import { encounterExpiresAt, readEncounter } from '../src/node/queue.mjs'
 import { companionIsLive, readStatus } from '../src/node/status.mjs'
 import { trainerLabel } from '../src/trainer.mjs'
@@ -17,7 +17,6 @@ import { money } from '../src/format.mjs'
 import {
   CALL_TO_ACTION,
   ENCOUNTER_MARK,
-  KANTO_TOTAL,
   LEAD_MARK,
   MIN_TRUNCATE_WIDTH,
   PROBE_RULE_WIDTH,

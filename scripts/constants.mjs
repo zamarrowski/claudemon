@@ -13,8 +13,6 @@ export const CALL_TO_ACTION = {
   runSuffix: ' in another tab',
 }
 
-export const KANTO_TOTAL = 151
-
 export const ENCOUNTER_MARK = '✦'
 
 export const LEAD_MARK = '◉'

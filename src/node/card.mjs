@@ -1,10 +1,5 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
-import {
-  DEFAULT_TYPE_COLOR,
-  GYMS,
-  KANTO_TOTAL,
-  TYPE_COLORS,
-} from '../constants.mjs'
+import { GYMS, KANTO_TOTAL } from '../constants.mjs'
 import {
   CARD_ACHIEVEMENT_GAP,
   CARD_ACHIEVEMENT_RADIUS,
@@ -47,7 +42,7 @@ import {
   textHeight,
   textWidth,
 } from './canvas.mjs'
-import { money } from '../format.mjs'
+import { money, typeColor } from '../format.mjs'
 
 const loadSpriteImage = (mon) => {
   try {
@@ -106,12 +101,6 @@ const hpColour = (fraction) => {
   if (!step) return CARD_PALETTE.red
 
   return step.colour
-}
-
-const typeColour = (speciesId) => {
-  const [type] = species(speciesId).types
-
-  return TYPE_COLORS[type] ?? DEFAULT_TYPE_COLOR
 }
 
 const drawRightText = (canvas, text, right, y, colour, scale) => {
@@ -240,7 +229,14 @@ const drawMemberName = (canvas, mon, centre, y) => {
 
 const drawMemberCell = (canvas, mon, cell) => {
   fillRect(canvas, cell.x, cell.y, cell.width, cell.height, CARD_PALETTE.panel)
-  fillRect(canvas, cell.x, cell.y, cell.width, 2, typeColour(mon.species))
+  fillRect(
+    canvas,
+    cell.x,
+    cell.y,
+    cell.width,
+    2,
+    typeColor(species(mon.species).types[0]),
+  )
 
   const centre = cell.x + cell.width / 2
 
@@ -303,13 +299,7 @@ const drawBadges = (canvas, save, y) => {
       continue
     }
 
-    drawDiamond(
-      canvas,
-      centreX,
-      y,
-      CARD_BADGE_RADIUS,
-      TYPE_COLORS[gym.type] ?? DEFAULT_TYPE_COLOR,
-    )
+    drawDiamond(canvas, centreX, y, CARD_BADGE_RADIUS, typeColor(gym.type))
   }
 }
 

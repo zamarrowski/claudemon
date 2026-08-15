@@ -14,7 +14,6 @@
   --line-strong: #10131a;
 
   --accent: #d64545;
-  --accent-soft: #f6c1c1;
   --gold: #d9a400;
   --grass: #3f9d4f;
   --sky: #4d8ad6;
@@ -33,8 +32,6 @@
   --gap: 12px;
   --gap-lg: 20px;
   --shadow: 0 10px 30px rgb(16 19 26 / 18%);
-
-  --pixel: 4;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -49,7 +46,6 @@
     --line-strong: #414b5e;
 
     --accent: #ef6a6a;
-    --accent-soft: #4a2222;
     --gold: #f0c33c;
 
     --shadow: 0 12px 34px rgb(0 0 0 / 45%);

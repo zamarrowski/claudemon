@@ -217,23 +217,6 @@ test('Should raise what waits in the day care only while Claude is working', () 
   expect(waiting.exp, 'it rests when Claude rests').toBe(resting)
 })
 
-test('Should walk the trainer scene on while Claude is working, and hold it when not', () => {
-  const ctx = aGame({
-    activity: { state: 'working', tool: null, since: 1, sessions: 1 },
-  })
-
-  ctx.tickScene()
-  ctx.tickScene()
-
-  expect(ctx.scene.step).toBe(1)
-
-  ctx.receiveActivity({ state: 'idle', tool: null, since: 2, sessions: 1 })
-  ctx.tickScene()
-  ctx.tickScene()
-
-  expect(ctx.scene.step).toBe(1)
-})
-
 test('Should level a Pokemon up out of a battle and keep it in the party', () => {
   const ctx = aGame({ encounter: aWeakEncounter() })
 

@@ -50,13 +50,6 @@ export const WALKER = {
   pass: [...TORSO, ...LEGS.pass],
 }
 
-export const WALK = [
-  { art: WALKER.stride, lift: 0 },
-  { art: WALKER.pass, lift: 1 },
-]
-
-export const IDLE = { art: WALKER.stand, lift: 0 }
-
 export const WALKER_PALETTE = {
   '.': null,
   c: [230, 72, 66],
@@ -69,6 +62,7 @@ export const WALKER_PALETTE = {
 }
 
 export const GLYPH_WIDTH = 5
+
 export const GLYPH_HEIGHT = 7
 
 export const MISSING_GLYPH = [
@@ -82,6 +76,7 @@ export const MISSING_GLYPH = [
 ]
 
 // prettier-ignore
+
 export const GLYPHS = {
   ' ': ['.....', '.....', '.....', '.....', '.....', '.....', '.....'],
   A: ['.###.', '#...#', '#...#', '#####', '#...#', '#...#', '#...#'],
@@ -137,20 +132,35 @@ export const GLYPHS = {
 }
 
 export const CARD_WIDTH = 1200
+
 export const CARD_HEIGHT = 908
+
 export const CARD_MARGIN = 36
+
 export const CARD_HEADER_HEIGHT = 112
+
 export const CARD_FOOTER_HEIGHT = 196
+
 export const CARD_CELL_GAP = 16
+
 export const CARD_CELL_TEXT_HEIGHT = 84
+
 export const CARD_BADGE_RADIUS = 13
+
 export const CARD_BADGE_GAP = 38
+
 export const CARD_ACHIEVEMENT_RADIUS = 7
+
 export const CARD_ACHIEVEMENT_GAP = 22
+
 export const CARD_ACHIEVEMENT_TOP = 100
+
 export const CARD_HP_BAR_HEIGHT = 8
+
 export const CARD_TITLE_SCALE = 5
+
 export const CARD_NAME_SCALE = 3
+
 export const CARD_LABEL_SCALE = 2
 
 export const CARD_PALETTE = {
@@ -187,8 +197,6 @@ export const CARD_LABELS = {
   source: 'claudemon · github.com/zamarrowski/claudemon',
   empty: '- - -',
 }
-
-export const EMPTY_WORKED = { totalMs: 0, updatedAt: null }
 
 export const PRUNE_MS = 24 * 60 * 60_000
 
@@ -280,3 +288,23 @@ export const BROWSER_COMMANDS = {
   win32: { command: 'cmd', args: (url) => ['/c', 'start', '', url] },
   default: { command: 'xdg-open', args: (url) => [url] },
 }
+
+export const SERVING_PREFIX = 'Playing at '
+
+export const SERVING_HINT = 'Ctrl-C here closes the game.'
+
+export const CARD_WRITTEN_PREFIX = 'Trainer card written to '
+
+export const CARD_OUT_FLAG = '--out'
+
+export const CARD_NO_OPEN_FLAG = '--no-open'
+
+export const CARD_NO_SAVE_MESSAGE = 'There is no save to make a card from yet.'
+
+export const CARD_NO_SAVE_HINT =
+  'Run claudemon, pick a starter, then try again.'
+
+export const DATASET_MISSING_MESSAGE = 'The Pokemon dataset is missing.'
+
+export const DATASET_MISSING_HINT =
+  'Run: node tools/fetch-data.mjs  (and node tools/fetch-sprites.mjs)'

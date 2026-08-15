@@ -1,9 +1,9 @@
-import { SOUNDS } from '../../src/constants.mjs'
 import {
   EFFECT_VOLUME,
   MUSIC_FILES,
   MUSIC_VOLUME,
   OSCILLATOR_TYPE,
+  SOUNDS,
 } from './constants.mjs'
 
 const playNote = (audio, note, at, gain) => {

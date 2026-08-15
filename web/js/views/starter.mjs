@@ -1,31 +1,14 @@
 import { STARTERS } from '../../../src/constants.mjs'
 import { species } from '../../../src/data.mjs'
-import { statsAtLevel } from '../../../src/stats.mjs'
 import { html } from '../dom.mjs'
-import { monSpriteUrl } from '../sprites.mjs'
 import { hints } from './chrome.mjs'
 import {
   APP_TITLE,
   MAX_NAME,
-  PREVIEW_LEVEL,
   STARTER_HINTS,
   STARTER_PROMPTS,
 } from './constants.mjs'
-import { clampSelection, typeBadge, wrap } from './helpers.mjs'
-
-const AVERAGE_IV = 15
-
-export const starterPreview = (id) => {
-  const entry = species(id)
-  const ivs = Object.fromEntries(
-    Object.keys(statsAtLevel(id, PREVIEW_LEVEL, {})).map((stat) => [
-      stat,
-      AVERAGE_IV,
-    ]),
-  )
-
-  return { entry, stats: statsAtLevel(id, PREVIEW_LEVEL, ivs) }
-}
+import { clampSelection, speciesSprite, typeBadge, wrap } from './helpers.mjs'
 
 const nameStep = (ctx) => {
   return html`<section class="field">
@@ -45,7 +28,7 @@ const choiceStep = (ctx) => {
     <p class="field__headline">${STARTER_PROMPTS.choose}</p>
     <div class="starter">
       ${STARTERS.map((id, index) => {
-        const { entry } = starterPreview(id)
+        const entry = species(id)
 
         return html`<button
           class="starter__choice"
@@ -54,11 +37,7 @@ const choiceStep = (ctx) => {
           data-index="${index}"
           data-key="enter"
         >
-          <img
-            class="sprite sprite--md"
-            src="${monSpriteUrl('front', id, false)}"
-            alt=""
-          />
+          ${speciesSprite(id, { shiny: false })}
           <span class="name">${entry.name}</span>
           <span class="types">${entry.types.map(typeBadge)}</span>
         </button>`

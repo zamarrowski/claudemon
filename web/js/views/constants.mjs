@@ -37,7 +37,6 @@ export const ENCOUNTER_MESSAGES = {
   wild: 'A wild',
   appeared: 'appeared!',
   slipsBackIn: 'it slips back into the grass in',
-  face: 'Face it',
 }
 
 export const GRASS_MESSAGES = {
@@ -55,6 +54,11 @@ export const HOME_HINTS = '← → choose · [enter] open · [q] quit'
 export const HOME_TEAM_PANEL_TITLE = 'Team'
 
 export const GRASS_BLADES = 26
+export const GRASS_BLADE = 'ʬ'
+
+export const BALL_HOME = { left: 18, top: 74 }
+export const BALL_TARGET = { left: 72, top: 28 }
+export const BALL_ARC = 42
 
 export const BATTLE_MAIN_MENU = ['FIGHT', 'BAG', 'POKÉMON', 'RUN']
 
@@ -65,7 +69,6 @@ export const BATTLE_PROMPTS = {
   switchTo: 'Switch to which Pokémon?',
   declineMove: 'Do not learn it',
   statusMove: 'Status',
-  unknownAccuracy: '—',
 }
 
 export const DEX_TITLE = 'POKÉDEX'
@@ -83,7 +86,6 @@ export const DEX_MESSAGES = {
   notCaught: 'Seen, but not yet caught.',
   fillItIn: 'Catch one to fill in its entry.',
   noData: 'No data.',
-  shinyCaught: 'A shiny one is in your collection',
 }
 
 export const EVOLUTION_WORDING = {
@@ -104,7 +106,6 @@ export const STAT_LABELS_SHORT = {
 export const TEAM_TITLE = 'TEAM'
 export const BAG_TITLE = 'BAG'
 export const LEAD_MARK = '★'
-export const PARTY_SORT = { order: 'order', level: 'level' }
 export const TEAM_SORT_LABELS = { order: 'party', level: 'Lv' }
 export const BOX_SORT_LABELS = { order: 'caught', level: 'Lv' }
 
@@ -116,8 +117,6 @@ export const TEAM_BAG_HINTS = '↑ ↓ choose · [enter] use it · [esc] put it 
 
 export const TEAM_MESSAGES = {
   noPokemon: 'You have no Pokémon.',
-  notForParty: 'Save it for something in the grass.',
-  wouldBecome: 'would become',
 }
 
 export const BOX_TITLE = 'BOX'
@@ -170,7 +169,6 @@ export const TRADE_PROMPTS = {
   gone: 'It is out of your game now.',
   paste: 'Paste the code you were given.',
   onceOnly: 'A code works once, and never in the game it came from.',
-  arrived: 'arrived from',
   copy: 'copy',
 }
 
@@ -213,7 +211,6 @@ export const GYM_HINTS =
   '↑ ↓ pick one · [enter] next battle · [i] bag · [l] lead · [esc] give up'
 
 export const MAX_NAME = 12
-export const PREVIEW_LEVEL = 5
 
 export const STARTER_PROMPTS = {
   intro: 'First things first.',
@@ -333,4 +330,5 @@ export const TRAINER_NOTES = {
 export const EMPTY_BAG_MESSAGE = 'Your bag is empty.'
 export const FAINTED_TAG = 'FNT'
 export const CAUGHT_GLYPH = '◓'
-export const KANTO_TOTAL = 151
+
+export const BAG_MODES = new Set(['team', 'gym'])

@@ -930,61 +930,11 @@ export const FALLBACK_SPECIES = [
   { id: 143, name: 'Snorlax', weight: 1 },
 ]
 
-export const SOUNDS = {
-  cursor: { gain: 0.16, notes: [{ hz: 1175, ms: 16 }] },
-
-  select: {
-    gain: 0.2,
-    notes: [
-      { hz: 880, ms: 22 },
-      { hz: 1319, ms: 40 },
-    ],
-  },
-
-  back: {
-    gain: 0.16,
-    notes: [
-      { hz: 659, ms: 20 },
-      { hz: 440, ms: 34 },
-    ],
-  },
-
-  shiny: {
-    gain: 0.18,
-    notes: [
-      { hz: 1568, ms: 34 },
-      { hz: 2093, ms: 34 },
-      { hz: 2637, ms: 90 },
-    ],
-  },
-
-  trade: {
-    gain: 0.18,
-    notes: [
-      { hz: 988, ms: 26 },
-      { hz: 1319, ms: 26 },
-      { hz: 1760, ms: 72 },
-    ],
-  },
-
-  hatch: {
-    gain: 0.18,
-    notes: [
-      { hz: 523, ms: 28 },
-      { hz: 784, ms: 28 },
-      { hz: 1047, ms: 28 },
-      { hz: 1319, ms: 96 },
-    ],
-  },
-}
-
 export const MOVE_SLOTS_FULL_LINE = 'but it already knows four moves.'
 
 export const HP_DRAIN_STEPS = 24
 
 export const FRAMES_PER_STEP = 2
-
-export const FRAMES_PER_SPIN = 3
 
 export const FRAMES_PER_DAYCARE_STEP = 100
 
@@ -1021,8 +971,6 @@ export const BAG_MESSAGES = {
   noRoomForMove: 'There was no room for it, so it kept the four it knows.',
 }
 
-export const BAG_MODES = new Set(['team', 'gym'])
-
 export const GYM_MESSAGES = {
   wipedOut: 'Your whole team has fainted. Heal before you challenge a gym.',
   downInside:
@@ -1047,32 +995,6 @@ export const BATTLE_MESSAGES = {
   forgetting: '1, 2 and... poof!',
   shiny: 'It sparkles with a strange light!',
 }
-
-export const HEARTBEAT_MS = 5000
-
-export const POLL_MS = 2000
-
-export const UPDATE_POLL_MS = 60_000
-
-export const TICK_MS = 500
-
-export const FRAME_MS = 60
-
-export const DATASET_MISSING_MESSAGE = 'The Pokemon dataset is missing.'
-
-export const DATASET_MISSING_HINT =
-  'Run: node tools/fetch-data.mjs  (and node tools/fetch-sprites.mjs)'
-
-export const CARD_NO_SAVE_MESSAGE = 'There is no save to make a card from yet.'
-
-export const CARD_NO_SAVE_HINT =
-  'Run claudemon, pick a starter, then try again.'
-
-export const CARD_WRITTEN_PREFIX = 'Trainer card written to '
-
-export const CARD_OUT_FLAG = '--out'
-
-export const CARD_NO_OPEN_FLAG = '--no-open'
 
 export const TRADE_VERSION = 1
 
@@ -1118,12 +1040,31 @@ export const DEFAULT_TYPE_COLOR = [136, 136, 136]
 
 export const DATA_NOT_LOADED = 'the dataset has not been loaded'
 
+export const CLICK_STEPS = [
+  { kind: 'click', lit: true, hideFoe: true },
+  { kind: 'click', lit: false, hideFoe: true },
+  { kind: 'click', lit: true, hideFoe: true },
+]
+
 export const THROW_FRAMES = 8
+
 export const FALL_FRAMES = 3
+
 export const SHAKE_TILTS = [-1, 0, 1, 0]
+
 export const BURST_SPREADS = 3
+
 export const HIT_FRAME_COUNT = 5
 
-export const SERVING_PREFIX = 'Playing at '
+export const EMPTY_WORKED = { totalMs: 0, updatedAt: null }
 
-export const SERVING_HINT = 'Ctrl-C here closes the game.'
+export const UNKNOWN_ACTIVITY = {
+  state: 'unknown',
+  tool: null,
+  since: null,
+  sessions: 0,
+}
+
+export const CLIENT_HEADER = 'x-claudemon-client'
+
+export const PARTY_SORT = { order: 'order', level: 'level' }

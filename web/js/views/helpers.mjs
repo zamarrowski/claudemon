@@ -1,10 +1,12 @@
-import { GYMS } from '../../../src/constants.mjs'
+import { GYMS, PARTY_SORT } from '../../../src/constants.mjs'
 import { typeColor } from '../../../src/format.mjs'
-import { levelOf } from '../../../src/pokemon.mjs'
+import { sortedPartyEntries } from '../../../src/helpers.mjs'
 import { hasBadge } from '../../../src/state.mjs'
 import { html, raw } from '../dom.mjs'
 import { monSpriteUrl } from '../sprites.mjs'
-import { DEX_SORT, EVOLUTION_WORDING, PARTY_SORT } from './constants.mjs'
+import { DEX_SORT, EVOLUTION_WORDING } from './constants.mjs'
+
+export { sortedPartyEntries }
 
 export const wrap = (index, length) => {
   if (length <= 0) return 0
@@ -16,13 +18,6 @@ export const clampSelection = (selection, total) => {
   return Math.max(0, Math.min(selection, total - 1))
 }
 
-export const noteRows = (note) => {
-  if (!note) return []
-  if (Array.isArray(note)) return note
-
-  return [note]
-}
-
 export const cssColor = ([r, g, b]) => `rgb(${r} ${g} ${b})`
 
 export const typeBadge = (type) => {
@@ -31,13 +26,17 @@ export const typeBadge = (type) => {
   >`
 }
 
-export const monSprite = (mon, size = 'md', side = 'front') => {
+export const speciesSprite = (id, { size = 'md', side = 'front', shiny }) => {
   return html`<img
     class="sprite sprite--${raw(size)}"
-    src="${monSpriteUrl(side, mon.species, mon.shiny)}"
-    data-fallback="${monSpriteUrl(side, mon.species, false)}"
+    src="${monSpriteUrl(side, id, shiny)}"
+    data-fallback="${monSpriteUrl(side, id, false)}"
     alt=""
   />`
+}
+
+export const monSprite = (mon, size = 'md', side = 'front') => {
+  return speciesSprite(mon.species, { size, side, shiny: mon.shiny })
 }
 
 export const hpBand = (fraction) => {
@@ -101,22 +100,6 @@ export const sortedDex = (pokedex, sort) => {
   }
 
   return pokedex
-}
-
-const byLevelThenIndex = (a, b) => {
-  const byLevel = levelOf(b.mon) - levelOf(a.mon)
-
-  if (byLevel !== 0) return byLevel
-
-  return a.index - b.index
-}
-
-export const sortedPartyEntries = (party, sort) => {
-  const entries = party.map((mon, index) => ({ mon, index }))
-
-  if (sort === PARTY_SORT.level) return entries.sort(byLevelThenIndex)
-
-  return entries
 }
 
 export const partyEntryAt = (party, selection, sort) => {

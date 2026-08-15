@@ -1,8 +1,6 @@
-import { ACTIVITY_PRIORITY, STALE_MS } from './constants.mjs'
+import { ACTIVITY_PRIORITY, STALE_MS, UNKNOWN_ACTIVITY } from './constants.mjs'
 
-const unknownActivity = () => {
-  return { state: 'unknown', tool: null, since: null, sessions: 0 }
-}
+const unknownActivity = () => ({ ...UNKNOWN_ACTIVITY })
 
 export const sinceOf = (entry, fallback) => {
   if (typeof entry.since === 'number') return entry.since

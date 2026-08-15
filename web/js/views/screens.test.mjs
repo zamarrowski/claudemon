@@ -132,7 +132,7 @@ test('Should list the bag and refuse an item the party cannot use', () => {
   const ctx = aGame()
 
   ctx.setMode('team')
-  ctx.openBag()
+  ctx.openBag(0)
 
   expect(screen(ctx)).toContain('Poké Ball')
 

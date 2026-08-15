@@ -1,10 +1,3 @@
-import {
-  mkdirSync,
-  readFileSync,
-  renameSync,
-  unlinkSync,
-  writeFileSync,
-} from 'node:fs'
 import { SAVE_VERSION } from '../constants.mjs'
 import { recordAchievements } from '../achievements.mjs'
 import { allPokemon } from '../helpers.mjs'
@@ -14,7 +7,8 @@ import {
   transformRequestSaveGame,
   transformResponseSave,
 } from '../transformers.mjs'
-import { HOME, SAVE_FILE } from './paths.mjs'
+import { readJson, writeJson } from './files.mjs'
+import { SAVE_FILE } from './paths.mjs'
 import { publishStatus } from './status.mjs'
 import { readWorked } from './worked.mjs'
 
@@ -31,16 +25,8 @@ const migrate = (save) => {
   return save
 }
 
-const readSaveFile = () => {
-  try {
-    return JSON.parse(readFileSync(SAVE_FILE, 'utf8'))
-  } catch {
-    return null
-  }
-}
-
 export const loadSave = () => {
-  const save = transformResponseSave(readSaveFile())
+  const save = transformResponseSave(readJson(SAVE_FILE))
 
   if (!isSaveShaped(save)) return null
 
@@ -48,20 +34,7 @@ export const loadSave = () => {
 }
 
 export const saveGame = (save) => {
-  mkdirSync(HOME, { recursive: true })
-
-  const tmp = `${SAVE_FILE}.${process.pid}.tmp`
-
-  try {
-    writeFileSync(tmp, JSON.stringify(transformRequestSaveGame(save)))
-    renameSync(tmp, SAVE_FILE)
-  } catch (error) {
-    try {
-      unlinkSync(tmp)
-    } catch {}
-
-    throw error
-  }
+  writeJson(SAVE_FILE, transformRequestSaveGame(save))
 
   try {
     publishStatus(save)

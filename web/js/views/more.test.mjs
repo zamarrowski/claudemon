@@ -2,6 +2,7 @@ import { expect, test, vi } from 'vitest'
 import { DAYCARE_LIMIT, DEFAULT_CONFIG } from '../../../src/constants.mjs'
 import { createPokemon } from '../../../src/pokemon.mjs'
 import { makeRng } from '../../../src/rng.mjs'
+import { itemsInBag } from '../../../src/shop.mjs'
 import { createSave } from '../../../src/state.mjs'
 import { markupOf } from '../dom.mjs'
 import { createStore } from '../store.mjs'
@@ -193,7 +194,6 @@ test('Should say how long ago Claude last did something, however it is reported'
   const { activityLabel } = await import('./home.mjs')
   const now = Date.now()
 
-  expect(activityLabel(null)).toBeNull()
   expect(
     activityLabel({ state: 'idle', tool: null, since: null, sessions: 1 }).age,
   ).toBeNull()
@@ -232,4 +232,32 @@ test('Should draw a Pokemon with no gender and one that has one', async () => {
   ctx.teamSelection = 0
 
   expect(screen(ctx)).toMatch(/BULBASAUR/)
+})
+
+test('Should use an item on the Pokemon the cursor is on, whatever the sort', () => {
+  const ctx = aGame()
+
+  ctx.save.bag.potion = 1
+  ctx.save.party.push(createPokemon(25, 30, makeRng(3)))
+  ctx.save.party[0].hp = 1
+  ctx.save.party[1].hp = 1
+
+  ctx.setMode('team')
+  press(ctx, 's', 'up')
+
+  expect(ctx.teamSort, 'the highest level sorts to the top').toBe('level')
+  expect(ctx.teamSelection, 'the cursor is on the first sorted row').toBe(0)
+
+  press(ctx, 'i')
+
+  expect(ctx.bagTarget, 'which is the second one in the party').toBe(1)
+
+  activeView(ctx).select(ctx, itemsInBag(ctx.save).indexOf('potion'))
+  press(ctx, 'enter')
+
+  expect(
+    ctx.save.party[1].hp,
+    'and that is the one that drank it',
+  ).toBeGreaterThan(1)
+  expect(ctx.save.party[0].hp).toBe(1)
 })

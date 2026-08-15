@@ -1,11 +1,6 @@
-import {
-  mkdirSync,
-  readFileSync,
-  renameSync,
-  unlinkSync,
-  writeFileSync,
-} from 'node:fs'
-import { HOME, QUEUE_FILE } from './paths.mjs'
+import { readFileSync, writeFileSync } from 'node:fs'
+import { writeAtomic } from './files.mjs'
+import { QUEUE_FILE } from './paths.mjs'
 import { trainerClass } from '../trainer.mjs'
 import {
   transformRequestWriteEncounter,
@@ -94,20 +89,7 @@ export const writeEncounter = (entry) => {
     at: entry.at ?? new Date().toISOString(),
   })
 
-  mkdirSync(HOME, { recursive: true })
-
-  const tmp = `${QUEUE_FILE}.${process.pid}.tmp`
-
-  try {
-    writeFileSync(tmp, `${JSON.stringify(stamped)}\n`)
-    renameSync(tmp, QUEUE_FILE)
-  } catch (error) {
-    try {
-      unlinkSync(tmp)
-    } catch {}
-
-    throw error
-  }
+  writeAtomic(QUEUE_FILE, `${JSON.stringify(stamped)}\n`)
 
   return stamped
 }

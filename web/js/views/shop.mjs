@@ -10,7 +10,7 @@ import {
   SHOP_OWNED_LABEL,
   SHOP_TITLE,
 } from './constants.mjs'
-import { clampSelection, noteRows, wrap } from './helpers.mjs'
+import { clampSelection, wrap } from './helpers.mjs'
 
 export const draw = (ctx) => {
   const selection = clampSelection(ctx.shopSelection, SHOP_STOCK.length)
@@ -40,7 +40,7 @@ export const draw = (ctx) => {
         )}
       </div>
     </section>
-    ${notes(noteRows(ctx.shopMessage))} ${hints(SHOP_HINTS, ctx.version)}
+    ${notes(ctx.shopMessage)} ${hints(SHOP_HINTS, ctx.version)}
   </div>`
 }
 
