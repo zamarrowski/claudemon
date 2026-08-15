@@ -19,8 +19,10 @@ export const DISABLE_TURNS = { min: 2, max: 5 }
 export const LEECH_SEED_FRACTION = 8
 export const FALLBACK_POWER = { 'low-kick': 50 }
 export const RUN_ODDS = { max: 0.95, speedFactor: 0.5, perAttempt: 0.15 }
-export const FOE_AI_SCORES = { defaultPower: 40, status: 15 }
+export const FOE_AI_SCORES = { defaultPower: 40, status: 15, selfKo: 0 }
+export const FOE_AI_SELF_KO_HP_RATIO = 0.3
 export const OHKO_MOVES = new Set(['guillotine', 'horn-drill', 'fissure'])
+export const SELF_KO_MOVES = new Set(['self-destruct', 'explosion'])
 
 export const UNSUPPORTED_MOVES = new Set([
   'counter',

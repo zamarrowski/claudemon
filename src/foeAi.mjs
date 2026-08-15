@@ -1,11 +1,24 @@
 import { effectiveSpeed, moveSlotOf } from './battleActor.mjs'
-import { FOE_AI_SCORES } from './constants.mjs'
+import {
+  FOE_AI_SCORES,
+  FOE_AI_SELF_KO_HP_RATIO,
+  SELF_KO_MOVES,
+} from './constants.mjs'
 import { move as moveData, species } from './data.mjs'
 import { chance } from './rng.mjs'
 import { effectiveness } from './typechart.mjs'
 import { isMoveDisabled } from './volatile.mjs'
 
-const scoreFoeMove = (move, playerTypes) => {
+const wastesSelfKo = (mon, key) => {
+  if (!SELF_KO_MOVES.has(key)) return false
+
+  return mon.hp > mon.stats.hp * FOE_AI_SELF_KO_HP_RATIO
+}
+
+const scoreFoeMove = (slot, mon, playerTypes) => {
+  const move = moveData(slot.move)
+
+  if (wastesSelfKo(mon, slot.move)) return FOE_AI_SCORES.selfKo
   if (move.damageClass === 'status') return FOE_AI_SCORES.status
 
   const power = move.power ?? FOE_AI_SCORES.defaultPower
@@ -16,15 +29,16 @@ const scoreFoeMove = (move, playerTypes) => {
 
 export const pickFoeMove = (battle) => {
   const playerTypes = species(battle.player.mon.species).types
+  const mon = battle.foe.mon
 
   let bestIndex = 0
   let bestScore = -1
 
-  battle.foe.mon.moves.forEach((slot, index) => {
+  mon.moves.forEach((slot, index) => {
     if (slot.pp <= 0) return
     if (isMoveDisabled(battle.foe, index)) return
 
-    const score = scoreFoeMove(moveData(slot.move), playerTypes)
+    const score = scoreFoeMove(slot, mon, playerTypes)
 
     if (score > bestScore) {
       bestScore = score
