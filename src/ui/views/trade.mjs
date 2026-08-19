@@ -4,7 +4,7 @@ import { displayName, levelOf } from '../../pokemon.mjs'
 import { bold, brightGreen, brightYellow, dim } from '../ansi.mjs'
 import { fitCanvasCols, loadSprite, placeSprite } from '../sprite.mjs'
 import { chunk } from '../text.mjs'
-import { panel, shinyTag, withFooter } from '../widgets.mjs'
+import { hintLine, panel, shinyTag, withFooter } from '../widgets.mjs'
 import {
   MAX_TRADE_WIDTH,
   TRADE_CODE_HINTS,
@@ -77,7 +77,7 @@ const drawConfirm = (ctx, size) => {
     )
 
   return {
-    lines: withFooter(lines, dim(TRADE_CONFIRM_HINTS), rows),
+    lines: withFooter(lines, hintLine(TRADE_CONFIRM_HINTS), rows),
     overlays: [],
   }
 }
@@ -109,7 +109,10 @@ const drawCode = (ctx, size) => {
   lines.push('')
   lines.push(` ${dim(TRADE_PROMPTS.gone)}`)
 
-  return { lines: withFooter(lines, dim(TRADE_CODE_HINTS), rows), overlays: [] }
+  return {
+    lines: withFooter(lines, hintLine(TRADE_CODE_HINTS), rows),
+    overlays: [],
+  }
 }
 
 const drawReceive = (ctx, size) => {
@@ -136,7 +139,7 @@ const drawReceive = (ctx, size) => {
   }
 
   return {
-    lines: withFooter(lines, dim(TRADE_RECEIVE_HINTS), rows),
+    lines: withFooter(lines, hintLine(TRADE_RECEIVE_HINTS), rows),
     overlays: [],
   }
 }

@@ -4,7 +4,7 @@ import { statsAtLevel } from '../../stats.mjs'
 import { spriteFile } from '../../paths.mjs'
 import { bold, brightYellow, dim, gray } from '../ansi.mjs'
 import { fitCanvasCols, loadSprite, placeSprite } from '../sprite.mjs'
-import { centre, typeBadge, wrap } from '../widgets.mjs'
+import { centre, hintLine, typeBadge, wrap } from '../widgets.mjs'
 import {
   APP_TITLE,
   AVERAGE_IV,
@@ -38,7 +38,9 @@ export const draw = (ctx, size) => {
     lines.push('')
     lines.push(
       centre(
-        dim(`${STARTER_HINTS.confirm} ${MAX_NAME} ${STARTER_HINTS.characters}`),
+        hintLine(
+          `${STARTER_HINTS.confirm} ${MAX_NAME} ${STARTER_HINTS.characters}`,
+        ),
         cols,
       ),
     )
@@ -98,7 +100,7 @@ export const draw = (ctx, size) => {
 
   while (lines.length < rows - 2) lines.push('')
 
-  lines.push(centre(dim(STARTER_HINTS.pick), cols))
+  lines.push(centre(hintLine(STARTER_HINTS.pick), cols))
 
   return { lines, overlays }
 }

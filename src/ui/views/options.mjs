@@ -9,7 +9,7 @@ import {
   placeSprite,
   spriteHeight,
 } from '../sprite.mjs'
-import { centre, padRight, withFooter, wrap } from '../widgets.mjs'
+import { centre, hintLine, padRight, withFooter, wrap } from '../widgets.mjs'
 import {
   BELL_VALUES,
   CANVAS_CAPTION,
@@ -130,7 +130,7 @@ export const draw = (ctx, size) => {
   )
 
   return {
-    lines: withFooter(lines, dim(OPTIONS_HINTS), rows),
+    lines: withFooter(lines, hintLine(OPTIONS_HINTS), rows),
     overlays,
   }
 }

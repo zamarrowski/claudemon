@@ -276,6 +276,8 @@ export const SHINY_MARK = '✧'
 export const EVOLVES_MARK = '✦'
 export const LEVEL_EVO_PREFIX = '→'
 
+export const HINT_KEY_PATTERN = /(\[[^\]]+\]|[↑↓←→])/
+
 export const GLYPH_WIDTH = 5
 export const GLYPH_HEIGHT = 7
 

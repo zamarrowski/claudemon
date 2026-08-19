@@ -2,9 +2,10 @@ import { expect, test } from 'vitest'
 
 import { createPokemon } from '../pokemon.mjs'
 import { makeRng } from '../rng.mjs'
+import { brightYellow, dim } from './ansi.mjs'
 import { EVOLVES_MARK, LEVEL_EVO_PREFIX, SHINY_MARK } from './constants.mjs'
 import { stripAnsi, visibleLength } from './text.mjs'
-import { evolutionTag, panel, shinyTag } from './widgets.mjs'
+import { evolutionTag, hintLine, panel, shinyTag } from './widgets.mjs'
 
 test('Should tag a stone evolution with a star and a level evolution with its level', () => {
   const rng = makeRng(7)
@@ -45,4 +46,24 @@ test('Should keep a panel border square when its content is wider than the frame
     1,
   )
   expect(stripAnsi(rows[2]), 'the overflow is cut, not spilled').toContain('…')
+})
+
+test('Should paint the keys of a hint line bright and leave the words dim', () => {
+  const line = hintLine(
+    ' ↑ ↓ browse · [PgUp/PgDn] jump · [s] sort · [esc] back',
+  )
+
+  expect(stripAnsi(line), 'the words the player reads do not move').toBe(
+    ' ↑ ↓ browse · [PgUp/PgDn] jump · [s] sort · [esc] back',
+  )
+  expect(line, 'the arrows are keys too').toContain(brightYellow('↑'))
+  expect(line, 'a multi-key shortcut counts as one').toContain(
+    brightYellow('[PgUp/PgDn]'),
+  )
+  expect(line, 'brackets and all').toContain(brightYellow('[esc]'))
+  expect(line, 'what a key does stays dim').toContain(dim(' sort · '))
+})
+
+test('Should leave a hint line with nothing to press entirely dim', () => {
+  expect(hintLine('press on')).toBe(dim('press on'))
 })

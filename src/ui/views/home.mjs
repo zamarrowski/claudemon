@@ -20,6 +20,7 @@ import {
   elapsed,
   evolutionTag,
   genderTag,
+  hintLine,
   hpBar,
   menuGrid,
   money,
@@ -119,14 +120,14 @@ export const updateRow = (notice) => {
 }
 
 export const footerRow = (cols, version = VERSION) => {
-  if (!version) return dim(HOME_HINTS)
+  if (!version) return hintLine(HOME_HINTS)
 
   const tag = `v${version} `
   const gap = cols - visibleLength(HOME_HINTS) - visibleLength(tag)
 
-  if (gap < 1) return dim(HOME_HINTS)
+  if (gap < 1) return hintLine(HOME_HINTS)
 
-  return dim(HOME_HINTS + ' '.repeat(gap) + tag)
+  return hintLine(HOME_HINTS + ' '.repeat(gap) + tag)
 }
 
 const encounterHeading = (encounter) => {

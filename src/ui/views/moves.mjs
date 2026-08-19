@@ -1,7 +1,14 @@
 import { move as moveData } from '../../data.mjs'
 import { displayName } from '../../pokemon.mjs'
 import { bold, brightYellow, dim } from '../ansi.mjs'
-import { menuList, padRight, typeBadge, withFooter, wrap } from '../widgets.mjs'
+import {
+  hintLine,
+  menuList,
+  padRight,
+  typeBadge,
+  withFooter,
+  wrap,
+} from '../widgets.mjs'
 import {
   HELD_MARK,
   LIST_HEIGHT_FLOOR,
@@ -36,10 +43,10 @@ const movesNote = (mon) => {
 }
 
 const movesFooter = (mon, held) => {
-  if (mon.moves.length < 2) return [dim(MOVES_BACK_HINTS)]
-  if (held) return [dim(MOVES_HELD_HINTS)]
+  if (mon.moves.length < 2) return [hintLine(MOVES_BACK_HINTS)]
+  if (held) return [hintLine(MOVES_HELD_HINTS)]
 
-  return [dim(MOVES_HINTS)]
+  return [hintLine(MOVES_HINTS)]
 }
 
 const selectedMon = (ctx) => {

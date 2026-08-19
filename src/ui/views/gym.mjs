@@ -13,6 +13,7 @@ import { trainerLabel } from '../../trainer.mjs'
 import { bold, brightGreen, brightYellow, dim, gray } from '../ansi.mjs'
 import {
   genderTag,
+  hintLine,
   hpBar,
   padRight,
   panel,
@@ -119,7 +120,7 @@ export const draw = (ctx, size) => {
   const budget = Math.max(0, rows - 2 - head.length - tail.length)
   const lines = [...head, ...body.slice(0, budget), ...tail]
 
-  return { lines: withFooter(lines, dim(GYM_HINTS), rows), overlays }
+  return { lines: withFooter(lines, hintLine(GYM_HINTS), rows), overlays }
 }
 
 export const onKey = (ctx, key) => {

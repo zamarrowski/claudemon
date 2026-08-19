@@ -11,6 +11,7 @@ import { fitCanvasCols, loadSprite } from '../sprite.mjs'
 import { truncate } from '../text.mjs'
 import {
   expBar,
+  hintLine,
   menuList,
   padRight,
   panel,
@@ -141,7 +142,7 @@ const drawSlots = (ctx, size) => {
   const selected = slots[clampSelection(ctx.daycareSelection, DAYCARE_LIMIT)]
 
   const note = noteRows(ctx.daycareMessage)
-  const footer = [dim(DAYCARE_HINTS)]
+  const footer = [hintLine(DAYCARE_HINTS)]
   const budget = rowsLeftFor(rows, lines, footer, note)
   const right = selected ? monDetail(selected) : []
 
@@ -169,7 +170,7 @@ const drawPick = (ctx, size) => {
   })
 
   const note = noteRows(ctx.daycareMessage)
-  const footer = [dim(DAYCARE_PICK_HINTS)]
+  const footer = [hintLine(DAYCARE_PICK_HINTS)]
   const budget = rowsLeftFor(rows, lines, footer, note)
   const right = monColumn(candidates[selection].mon, size, ctx.spriteScale)
 

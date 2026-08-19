@@ -6,7 +6,14 @@ import { hasBadge } from '../../state.mjs'
 import { trainerLabel } from '../../trainer.mjs'
 import { bold, brightYellow, dim, gray } from '../ansi.mjs'
 import { fitCanvasCols, loadSprite } from '../sprite.mjs'
-import { menuList, padRight, typeBadge, withFooter, wrap } from '../widgets.mjs'
+import {
+  hintLine,
+  menuList,
+  padRight,
+  typeBadge,
+  withFooter,
+  wrap,
+} from '../widgets.mjs'
 import {
   COLUMN_DIVIDER,
   GYM_CITY_WIDTH,
@@ -115,7 +122,7 @@ export const draw = (ctx, size) => {
     for (const row of note) lines.push(` ${brightYellow('✦')} ${row}`)
   }
 
-  return { lines: withFooter(lines, dim(GYMS_HINTS), rows), overlays }
+  return { lines: withFooter(lines, hintLine(GYMS_HINTS), rows), overlays }
 }
 
 export const onKey = (ctx, key) => {

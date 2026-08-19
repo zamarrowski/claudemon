@@ -1,6 +1,6 @@
 import { PARTY_LIMIT } from '../../constants.mjs'
 import { bold, brightYellow, dim, gray } from '../ansi.mjs'
-import { menuList, withFooter, wrap } from '../widgets.mjs'
+import { hintLine, menuList, withFooter, wrap } from '../widgets.mjs'
 import {
   LEAD_MARK,
   LIST_HEIGHT_FLOOR,
@@ -50,7 +50,7 @@ export const draw = (ctx, size) => {
     lines.push(' ' + gray(TEAM_MESSAGES.noPokemon))
 
     return {
-      lines: withFooter(lines, [dim(TEAM_MESSAGES.back)], rows),
+      lines: withFooter(lines, [hintLine(TEAM_MESSAGES.back)], rows),
       overlays,
     }
   }
@@ -68,7 +68,7 @@ export const draw = (ctx, size) => {
 
   const right = monColumn(selected, size, ctx.spriteScale)
   const note = noteRows(ctx.bagMessage ?? ctx.boxMessage)
-  const footer = [dim(TEAM_HINTS), dim(TEAM_KEY_HINTS)]
+  const footer = [hintLine(TEAM_HINTS), hintLine(TEAM_KEY_HINTS)]
   const budget = rowsLeftFor(rows, lines, footer, note)
 
   for (const row of columnRows(list, right, LIST_WIDTH).slice(0, budget))

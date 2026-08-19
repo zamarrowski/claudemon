@@ -5,6 +5,7 @@ import { workedHours } from '../../worked.mjs'
 import { bold, brightGreen, brightYellow, dim, gray } from '../ansi.mjs'
 import { truncate } from '../text.mjs'
 import {
+  hintLine,
   menuList,
   money,
   padRight,
@@ -127,7 +128,7 @@ export const draw = (ctx, size) => {
   if (ctx.notice)
     lines.push(` ${brightYellow('✦')} ${truncate(ctx.notice, cols - 4)}`)
 
-  return { lines: withFooter(lines, dim(TRAINER_HINTS), rows), overlays }
+  return { lines: withFooter(lines, hintLine(TRAINER_HINTS), rows), overlays }
 }
 
 export const onKey = (ctx, key) => {

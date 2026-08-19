@@ -22,6 +22,7 @@ import {
   EXP_BAR_GLYPH,
   FULL_BLOCK,
   GENDER_MARKS,
+  HINT_KEY_PATTERN,
   LEVEL_EVO_PREFIX,
   HP_BAR_COLOURS,
   HP_BAR_EMPTY_GLYPH,
@@ -200,6 +201,16 @@ export const withFooter = (lines, footer, rows) => {
   while (out.length < usable) out.push('')
 
   return [...out, ...footerRows]
+}
+
+const hintSegment = (segment) => {
+  if (HINT_KEY_PATTERN.test(segment)) return brightYellow(segment)
+
+  return dim(segment)
+}
+
+export const hintLine = (text) => {
+  return text.split(HINT_KEY_PATTERN).filter(Boolean).map(hintSegment).join('')
 }
 
 export const statusTag = (status) => {

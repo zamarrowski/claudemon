@@ -6,7 +6,7 @@ import { bold, brightYellow, dim, gray } from '../ansi.mjs'
 import { EVOLVES_MARK } from '../constants.mjs'
 import { monDetail } from '../detail.mjs'
 import { fitCanvasCols, loadSprite } from '../sprite.mjs'
-import { menuList, padRight, withFooter, wrap } from '../widgets.mjs'
+import { hintLine, menuList, padRight, withFooter, wrap } from '../widgets.mjs'
 import {
   BAG_ITEM_NAME_WIDTH,
   BAG_TITLE,
@@ -98,7 +98,7 @@ export const draw = (ctx, size) => {
   }
 
   return {
-    lines: withFooter(lines, dim(TEAM_BAG_HINTS), rows),
+    lines: withFooter(lines, hintLine(TEAM_BAG_HINTS), rows),
     overlays,
   }
 }

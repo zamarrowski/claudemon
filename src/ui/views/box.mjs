@@ -1,6 +1,6 @@
 import { PARTY_LIMIT } from '../../constants.mjs'
 import { bold, brightYellow, dim, gray } from '../ansi.mjs'
-import { menuList, withFooter, wrap } from '../widgets.mjs'
+import { hintLine, menuList, withFooter, wrap } from '../widgets.mjs'
 import {
   BOX_HINTS,
   BOX_MESSAGES,
@@ -44,7 +44,7 @@ export const draw = (ctx, size) => {
     lines.push(' ' + gray(BOX_MESSAGES.waitingHere))
 
     return {
-      lines: withFooter(lines, dim(BOX_MESSAGES.back), rows),
+      lines: withFooter(lines, hintLine(BOX_MESSAGES.back), rows),
       overlays,
     }
   }
@@ -66,7 +66,11 @@ export const draw = (ctx, size) => {
   pushNote(lines, noteRows(ctx.boxMessage))
 
   return {
-    lines: withFooter(lines, [dim(BOX_HINTS), dim(TRADE_KEY_HINTS)], rows),
+    lines: withFooter(
+      lines,
+      [hintLine(BOX_HINTS), hintLine(TRADE_KEY_HINTS)],
+      rows,
+    ),
     overlays,
   }
 }
