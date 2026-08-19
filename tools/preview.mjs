@@ -77,6 +77,7 @@ const MODULES = {
   battle: await import('../src/ui/views/battle.mjs'),
   dex: await import('../src/ui/views/dex.mjs'),
   team: await import('../src/ui/views/team.mjs'),
+  moves: await import('../src/ui/views/moves.mjs'),
   daycare: await import('../src/ui/views/daycare.mjs'),
   shop: await import('../src/ui/views/shop.mjs'),
   options: await import('../src/ui/views/options.mjs'),
@@ -313,6 +314,16 @@ const SCENES = {
     const app = makeApp(sampleSave())
     app.mode = 'team'
     app.teamSelection = 1
+
+    return app
+  },
+  moves: () => {
+    const app = makeApp(sampleSave())
+
+    app.mode = 'moves'
+    app.teamSelection = 0
+    app.moveSelection = 2
+    app.moveHeld = true
 
     return app
   },
