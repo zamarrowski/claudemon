@@ -25,6 +25,9 @@ const {
   FRAMES_PER_DAYCARE_STEP,
   GYM_MESSAGES,
   HOME_NOTICES,
+  STAR_ANSWERS,
+  STAR_MESSAGES,
+  STAR_REPO_URL,
 } = await import('../src/constants.mjs')
 const { GYM_MESSAGES: GYM_SCREEN_MESSAGES } =
   await import('../src/ui/views/constants.mjs')
@@ -48,6 +51,7 @@ const daycareView = await import('../src/ui/views/daycare.mjs')
 const tradeView = await import('../src/ui/views/trade.mjs')
 const dexView = await import('../src/ui/views/dex.mjs')
 const trainerView = await import('../src/ui/views/trainer.mjs')
+const starView = await import('../src/ui/views/star.mjs')
 const { stripAnsi } = await import('../src/ui/text.mjs')
 const { makeRng } = await import('../src/rng.mjs')
 const { VERSION } = await import('../src/version.mjs')
@@ -2744,7 +2748,7 @@ test('Should offer nothing on the OPTION screen that could stop a sprite drawing
   expect(
     SETTINGS.map((setting) => setting.key),
     'no renderer, no grid, only what is left',
-  ).toEqual(['spriteScale', 'sound', 'bell', 'updateCheck'])
+  ).toEqual(['spriteScale', 'sound', 'bell', 'updateCheck', 'starPrompt'])
 })
 
 test('Should make SOUND one switch for every noise the game makes, and make it stick', () => {
@@ -3932,4 +3936,170 @@ test('Should run every ticker on a frame rather than stopping at the first that 
   ).toBe(1)
 
   endSession('test-session')
+})
+
+const starText = (app) => {
+  return starView
+    .draw(app, { cols: 100, rows: 34 })
+    .lines.map(stripAnsi)
+    .join('\n')
+}
+
+const aVeteran = () => {
+  const save = createSave({ trainer: 'Red', starterId: 1, rng: makeRng(1) })
+
+  save.badges = ['pewter']
+
+  return save
+}
+
+test('Should ask for a star once a badge is in, open the repo and never ask again', () => {
+  const openUrl = vi.fn(() => true)
+  const app = createApp({
+    screen: stubScreen(),
+    save: aVeteran(),
+    config: { ...DEFAULT_CONFIG },
+    openUrl,
+  })
+
+  expect(app.askForStar(), 'earned it, at rest, never asked before').toBe(true)
+  expect(app.mode).toBe('star')
+
+  const dialog = starText(app)
+
+  expect(dialog).toContain('PROF. OAK')
+  expect(dialog).toContain('So, are you enjoying your journey?')
+  expect(dialog).toContain('[enter] leave a star')
+  expect(dialog, 'the address is on screen either way').toContain(STAR_REPO_URL)
+
+  press(app, 'x')
+
+  expect(app.mode, 'a stray keystroke is not an answer').toBe('star')
+
+  press(app, 'enter')
+
+  expect(app.mode).toBe('home')
+  expect(app.notice).toBe(STAR_MESSAGES.thanks)
+  expect(openUrl).toHaveBeenCalledTimes(1)
+  expect(openUrl).toHaveBeenCalledWith(STAR_REPO_URL)
+  expect(app.config.starPrompt.answered).toBe(STAR_ANSWERS.starred)
+  expect(loadConfig().starPrompt.answered, 'and it survives the process').toBe(
+    STAR_ANSWERS.starred,
+  )
+  expect(app.askForStar(), 'a yes is the end of it').toBe(false)
+})
+
+test('Should take a not now from any of the ways out and leave the ask alive', () => {
+  for (const name of ['n', 'escape', 'space', 'q']) {
+    const app = createApp({
+      screen: stubScreen(),
+      save: aVeteran(),
+      config: { ...DEFAULT_CONFIG },
+      openUrl: vi.fn(),
+    })
+
+    app.askForStar()
+    press(app, name)
+
+    expect(app.mode, `[${name}] should put the dialog away`).toBe('home')
+    expect(app.notice, `[${name}] says nothing back`).toBeNull()
+    expect(app.config.starPrompt, `[${name}] counts and re-arms`).toEqual({
+      askedAt: expect.any(String),
+      asks: 1,
+      answered: null,
+    })
+  }
+})
+
+test('Should bury the ask for good on a never ask', () => {
+  const app = createApp({
+    screen: stubScreen(),
+    save: aVeteran(),
+    config: { ...DEFAULT_CONFIG },
+    openUrl: vi.fn(),
+  })
+
+  app.askForStar()
+  press(app, 'd')
+
+  expect(app.mode).toBe('home')
+  expect(app.config.starPrompt.answered).toBe(STAR_ANSWERS.never)
+  expect(app.askForStar()).toBe(false)
+  expect(loadConfig().starPrompt.answered, 'and it survives the process').toBe(
+    STAR_ANSWERS.never,
+  )
+})
+
+test('Should hand over the address when nothing opens a browser', () => {
+  const openUrl = vi.fn(() => false)
+  const app = createApp({
+    screen: stubScreen(),
+    save: aVeteran(),
+    config: { ...DEFAULT_CONFIG },
+    openUrl,
+  })
+
+  app.askForStar()
+  press(app, 'enter')
+
+  expect(app.notice).toContain(STAR_MESSAGES.noBrowser)
+  expect(app.notice, 'the ask never ends having done nothing').toContain(
+    STAR_REPO_URL,
+  )
+  expect(openUrl).toHaveBeenCalledTimes(1)
+})
+
+test('Should never put the ask in front of an encounter or a battle', () => {
+  const app = createApp({
+    screen: stubScreen(),
+    save: aVeteran(),
+    config: { ...DEFAULT_CONFIG },
+    openUrl: vi.fn(),
+  })
+
+  queueEncounter(app, { species: 10, name: 'Caterpie', level: 12, seed: 7 })
+
+  expect(app.askForStar(), 'the grass got there first').toBe(false)
+  expect(app.mode).toBe('home')
+
+  press(app, 'enter')
+  clearMessages(app)
+
+  expect(app.mode).toBe('battle')
+  expect(app.askForStar(), "and a battle is nobody's moment for a favour").toBe(
+    false,
+  )
+  expect(app.mode).toBe('battle')
+
+  clearEncounter()
+  app.pump()
+})
+
+test('Should turn the star ask off from the options screen, and back on again', () => {
+  const app = createApp({
+    screen: stubScreen(),
+    save: aVeteran(),
+    config: { ...DEFAULT_CONFIG },
+  })
+
+  app.openHomeSelection('options')
+  openSetting(app, 'starPrompt')
+
+  press(app, 'right')
+
+  expect(app.config.starPrompt.answered).toBe(STAR_ANSWERS.never)
+  expect(loadConfig().starPrompt.answered, 'and it survives the process').toBe(
+    STAR_ANSWERS.never,
+  )
+
+  press(app, 'right')
+
+  expect(
+    app.config.starPrompt.answered,
+    'two values, so it comes straight back',
+  ).toBeNull()
+
+  press(app, 'escape')
+
+  expect(app.askForStar(), 'and the professor can ask again').toBe(true)
 })

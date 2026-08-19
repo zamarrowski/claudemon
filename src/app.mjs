@@ -15,6 +15,9 @@ import {
   GYM_MESSAGES,
   HOME_NOTICES,
   ITEMS,
+  STAR_ANSWERS,
+  STAR_MESSAGES,
+  STAR_REPO_URL,
   TRADE_MESSAGES,
   TRAINER_MESSAGES,
 } from './constants.mjs'
@@ -81,6 +84,7 @@ import {
   setLead,
   withdrawPokemon,
 } from './state.mjs'
+import { starAnswer, starAskDue } from './star.mjs'
 import { sentOutLine, trainerClass, trainerLabel } from './trainer.mjs'
 import { checkForUpdate, createUpdateRun, currentNotice } from './update.mjs'
 import { readWorked } from './worked.mjs'
@@ -97,6 +101,7 @@ import * as homeView from './ui/views/home.mjs'
 import * as movesView from './ui/views/moves.mjs'
 import * as optionsView from './ui/views/options.mjs'
 import * as shopView from './ui/views/shop.mjs'
+import * as starView from './ui/views/star.mjs'
 import * as starterView from './ui/views/starter.mjs'
 import * as teamView from './ui/views/team.mjs'
 import * as tradeView from './ui/views/trade.mjs'
@@ -116,6 +121,7 @@ const VIEWS = {
   daycare: daycareView,
   shop: shopView,
   options: optionsView,
+  star: starView,
   update: updateView,
   gyms: gymsView,
   gym: gymView,
@@ -141,6 +147,7 @@ export const createApp = ({
   saveCode = writeTradeCode,
   playMusic = startMusic,
   endMusic = stopMusic,
+  openUrl = revealFile,
 }) => {
   let spinFrames = 0
   let daycareFrames = 0
@@ -402,6 +409,29 @@ export const createApp = ({
     ctx.updateFrame = 0
     spinFrames = 0
     ctx.setMode('update')
+  }
+
+  ctx.askForStar = () => {
+    if (ctx.mode !== 'home') return false
+    if (ctx.encounter) return false
+    if (!starAskDue({ save: ctx.save, config: ctx.config })) return false
+
+    ctx.setMode('star')
+
+    return true
+  }
+
+  ctx.answerStar = (answered) => {
+    ctx.applyConfig(starAnswer(ctx.config, answered))
+
+    if (answered === STAR_ANSWERS.starred) {
+      ctx.notice = openUrl(STAR_REPO_URL)
+        ? STAR_MESSAGES.thanks
+        : `${STAR_MESSAGES.noBrowser} ${STAR_REPO_URL}`
+    }
+
+    ctx.playSound('select')
+    ctx.setMode('home')
   }
 
   ctx.finishUpdate = () => {

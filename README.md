@@ -208,7 +208,7 @@ battle message. That is the whole scheme — it is the same everywhere.
 | Shop | Balls, potions, revives and evolution stones. `5` buys five |
 | Trade | `t`, on the team screen or in the box, on whoever the cursor is on: it asks first, because a trade only goes one way, and then hands you the code. `r`, on either screen, takes one in from a code you were sent |
 | Trainer | Everything the game has been counting: battles won, lost and run from, the streak of days you have opened it, the hours Claude has worked beside you, and fifteen achievements with how far along each one is. `s` writes the trainer card |
-| Option | How big sprites are drawn, the menu sounds, the bell, and when the version check runs — daily, every launch, or never. `← →` changes a setting, and the Pokémon underneath redraws as you do |
+| Option | How big sprites are drawn, the menu sounds, the bell, when the version check runs — daily, every launch, or never — and whether the professor may ever ask for a star. `← →` changes a setting, and the Pokémon underneath redraws as you do |
 
 <table>
 <tr>
@@ -337,6 +337,27 @@ One egg at a time, and taking a parent back does not take the egg with it.
   are generated from a few lines of notes rather than shipped, so a new one costs three
   numbers; the two tracks are mono WAV in `assets/`, which is the one format every
   player on every platform will open.
+
+## The one favour
+
+Once you have a badge in — or ten of the 151 caught — the professor asks, on the home
+screen and nowhere else, whether a ★ on GitHub is worth your while:
+
+```
+┌─ PROF. OAK ──────────────────────────────────────────┐
+│                                                      │
+│  So, are you enjoying your journey?                  │
+│  A ★ on GitHub helps other trainers find claudemon.  │
+│                                                      │
+│  [enter] leave a star   [n] not now   [d] never ask  │
+└──────────────────────────────────────────────────────┘
+```
+
+`enter` opens the repo and ends the matter; `n` puts it off for a month; `d` ends it
+now. It never comes up twice in a month, never more than twice in a whole game, and
+never while something is in the grass or a battle is on. `STAR ASK OFF` on the
+**Option** screen switches it off before it ever fires, and nothing here phones home
+to find out whether you actually starred — the answer we keep is the one you gave.
 
 ## Contributing
 

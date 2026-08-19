@@ -312,6 +312,7 @@ export const SETTING_LABELS = {
   sound: 'SOUND',
   bell: 'BELL',
   updateCheck: 'UPDATE',
+  starPrompt: 'STAR ASK',
 }
 
 export const SPRITE_SCALE_VALUES = [
@@ -380,6 +381,19 @@ export const UPDATE_CHECK_VALUES = [
   },
 ]
 
+export const STAR_ASK_VALUES = [
+  {
+    value: true,
+    label: 'ON',
+    note: 'Let the professor ask for a GitHub star twice in a whole game, from here and nowhere else.',
+  },
+  {
+    value: false,
+    label: 'OFF',
+    note: 'Never ask. The game says nothing about GitHub again, on this machine or the next.',
+  },
+]
+
 export const CANVAS_CAPTION = {
   exact: 'pixel for pixel',
   detail: ' · quadrant blocks · 4px per cell',
@@ -442,3 +456,17 @@ export const TRAINER_NOTES = {
   earned: 'Earned',
   badges: 'badges',
 }
+
+export const STAR_PANEL_TITLE = 'PROF. OAK'
+export const MAX_STAR_WIDTH = 56
+
+export const STAR_LINES = [
+  'So, are you enjoying your journey?',
+  'A ★ on GitHub helps other trainers find claudemon.',
+]
+
+export const STAR_CHOICES = [
+  { key: '[enter]', label: 'leave a star' },
+  { key: '[n]', label: 'not now' },
+  { key: '[d]', label: 'never ask' },
+]

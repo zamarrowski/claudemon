@@ -141,6 +141,8 @@ const main = () => {
 
   openSave(app)
 
+  app.askForStar()
+
   app.checkForUpdates({ atLaunch: true }).then(handleUpdateChecked)
 
   const heartbeat = setInterval(tickHeartbeat, HEARTBEAT_MS)

@@ -353,7 +353,7 @@ test('Should write a session entry with the same fields it is read with', () => 
   expect(written.hookEventName).toBeUndefined()
 })
 
-test('Should map the eleven config keys the game reads and drop anything else', () => {
+test('Should map the twelve config keys the game reads and drop anything else', () => {
   const config = transformResponseConfig({
     encounterChance: 0.5,
     charsPerStep: 10,
@@ -366,6 +366,12 @@ test('Should map the eleven config keys the game reads and drop anything else', 
     spriteScale: 0.6,
     wrappedStatusLine: 'echo hi',
     probeRows: 3,
+    starPrompt: {
+      askedAt: '2026-03-01T12:00:00.000Z',
+      asks: 1,
+      answered: null,
+      seenIn: '1.12.0',
+    },
     theme: 'dark',
   })
 
@@ -381,6 +387,11 @@ test('Should map the eleven config keys the game reads and drop anything else', 
     spriteScale: 0.6,
     wrappedStatusLine: 'echo hi',
     probeRows: 3,
+    starPrompt: {
+      askedAt: '2026-03-01T12:00:00.000Z',
+      asks: 1,
+      answered: null,
+    },
   })
   expect(transformResponseConfig(null)).toBeNull()
 })

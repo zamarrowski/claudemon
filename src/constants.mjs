@@ -426,6 +426,8 @@ export const ACHIEVEMENTS = [
 export const SPRITE_SCALE_MIN = 0.4
 export const SPRITE_SCALE_MAX = 1
 
+export const DEFAULT_STAR_PROMPT = { askedAt: null, asks: 0, answered: null }
+
 export const DEFAULT_CONFIG = {
   encounterChance: 0.12,
 
@@ -450,6 +452,8 @@ export const DEFAULT_CONFIG = {
   wrappedStatusLine: null,
 
   probeRows: null,
+
+  starPrompt: DEFAULT_STAR_PROMPT,
 }
 
 export const HOUR_MS = 60 * 60_000
@@ -1134,4 +1138,16 @@ export const TRADE_MESSAGES = {
   fromNewer: 'That code comes from a newer claudemon than this one.',
   ownGame: 'That one came out of your own game. A trade only goes one way.',
   alreadyTaken: 'You have already taken that one in.',
+}
+
+export const STAR_REPO_URL = 'https://github.com/zamarrowski/claudemon'
+export const STAR_ASK_COOLDOWN_MS = 30 * 24 * 60 * 60 * 1000
+export const STAR_ASK_LIMIT = 2
+export const STAR_ASK_MIN_BADGES = 1
+export const STAR_ASK_MIN_CAUGHT = 10
+export const STAR_ANSWERS = { starred: 'starred', never: 'never' }
+
+export const STAR_MESSAGES = {
+  thanks: 'Thank you! The repo is open in your browser.',
+  noBrowser: 'No browser opened here. The repo is at',
 }
