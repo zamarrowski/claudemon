@@ -130,9 +130,9 @@ export const TEAM_SORT_LABELS = { order: 'party', level: 'Lv' }
 export const BOX_SORT_LABELS = { order: 'caught', level: 'Lv' }
 
 export const TEAM_HINTS =
-  ' ↑ ↓ browse · [enter] lead · [s] sort · [i] items · [d] send it to the box · [esc] back'
+  ' ↑ ↓ browse · [enter] lead · [m] moves · [i] items · [d] send it to the box · [esc] back'
 export const TEAM_KEY_HINTS =
-  ' [b] the box · [c] the day care · [t] trade it away · [r] take one in from a code'
+  ' [s] sort · [b] the box · [c] the day care · [t] trade it away · [r] take one in from a code'
 export const TEAM_BAG_HINTS =
   ' ↑ ↓ choose an item · [enter] use it · [esc] put the bag away'
 
@@ -142,6 +142,22 @@ export const TEAM_MESSAGES = {
   notForParty: 'Save it for something in the grass.',
   wouldBecome: 'would become',
 }
+
+export const MOVES_TITLE = 'MOVES'
+export const MOVE_NAME_WIDTH = 15
+export const HELD_MARK = '↕'
+
+export const MOVES_MESSAGES = {
+  fightMenu: 'The fight menu opens on the top move.',
+  daycare: 'The day care gives that one up when it teaches a new one.',
+  onlyOne: 'It only knows the one move.',
+}
+
+export const MOVES_HINTS =
+  ' ↑ ↓ choose a move · [enter] pick it up · [esc] back'
+export const MOVES_HELD_HINTS =
+  ' ↑ ↓ move it · [enter] put it down · [esc] leave it there'
+export const MOVES_BACK_HINTS = ' [esc] back'
 
 export const BOX_TITLE = 'BOX'
 export const BOX_HINTS =

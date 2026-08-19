@@ -116,7 +116,8 @@ export const onKey = (ctx, key) => {
     )
     ctx.teamSort = nextSort
     ctx.clearTeamMessages()
-  } else if (key.name === 'i') ctx.openBag()
+  } else if (key.name === 'm') ctx.openMoves()
+  else if (key.name === 'i') ctx.openBag()
   else if (key.name === 'b') ctx.openBox()
   else if (key.name === 'c') ctx.openDaycare('team')
   else if (key.name === 't')

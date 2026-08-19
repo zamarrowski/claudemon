@@ -58,7 +58,7 @@ import {
 import { canSpare } from './helpers.mjs'
 import { applyItem } from './itemUse.mjs'
 import { describeStep } from './progression.mjs'
-import { createPokemon, displayName } from './pokemon.mjs'
+import { createPokemon, displayName, reorderMoves } from './pokemon.mjs'
 import { clearEncounter, encounterExpiresAt, readEncounter } from './queue.mjs'
 import { CARD_FILE } from './paths.mjs'
 import { copyToClipboard } from './clipboard.mjs'
@@ -94,6 +94,7 @@ import * as dexView from './ui/views/dex.mjs'
 import * as gymView from './ui/views/gym.mjs'
 import * as gymsView from './ui/views/gyms.mjs'
 import * as homeView from './ui/views/home.mjs'
+import * as movesView from './ui/views/moves.mjs'
 import * as optionsView from './ui/views/options.mjs'
 import * as shopView from './ui/views/shop.mjs'
 import * as starterView from './ui/views/starter.mjs'
@@ -109,6 +110,7 @@ const VIEWS = {
   battle: battleView,
   dex: dexView,
   team: teamView,
+  moves: movesView,
   bag: bagView,
   box: boxView,
   daycare: daycareView,
@@ -167,6 +169,9 @@ export const createApp = ({
     teamSort: 'order',
     boxSelection: 0,
     boxSort: 'order',
+
+    moveSelection: 0,
+    moveHeld: false,
 
     boxMessage: null,
 
@@ -505,6 +510,24 @@ export const createApp = ({
       ctx.save.party,
       ctx.teamSort,
     ).findIndex((entry) => entry.index === 0)
+    ctx.persist()
+  }
+
+  ctx.openMoves = () => {
+    ctx.moveSelection = 0
+    ctx.moveHeld = false
+    ctx.setMode('moves')
+  }
+
+  ctx.closeMoves = () => {
+    ctx.moveHeld = false
+    ctx.setMode('team')
+  }
+
+  ctx.carryMove = (mon, to) => {
+    reorderMoves(mon, ctx.moveSelection, to)
+
+    ctx.moveSelection = to
     ctx.persist()
   }
 

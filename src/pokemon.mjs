@@ -81,6 +81,17 @@ export const refreshStats = (mon) => {
   return mon
 }
 
+export const reorderMoves = (mon, from, to) => {
+  const slots = [...mon.moves]
+  const [carried] = slots.splice(from, 1)
+
+  slots.splice(to, 0, carried)
+
+  mon.moves = slots
+
+  return mon
+}
+
 export const healFully = (mon) => {
   mon.hp = mon.stats.hp
   mon.status = null

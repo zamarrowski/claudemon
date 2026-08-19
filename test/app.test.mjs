@@ -43,6 +43,7 @@ const homeView = await import('../src/ui/views/home.mjs')
 const battleView = await import('../src/ui/views/battle.mjs')
 const gymView = await import('../src/ui/views/gym.mjs')
 const teamView = await import('../src/ui/views/team.mjs')
+const movesView = await import('../src/ui/views/moves.mjs')
 const daycareView = await import('../src/ui/views/daycare.mjs')
 const tradeView = await import('../src/ui/views/trade.mjs')
 const dexView = await import('../src/ui/views/dex.mjs')
@@ -120,6 +121,13 @@ const gymText = (app) => {
 
 const teamText = (app) => {
   return teamView
+    .draw(app, { cols: 100, rows: 34 })
+    .lines.map(stripAnsi)
+    .join('\n')
+}
+
+const movesText = (app) => {
+  return movesView
     .draw(app, { cols: 100, rows: 34 })
     .lines.map(stripAnsi)
     .join('\n')
@@ -2299,6 +2307,84 @@ test('Should act on the Pokemon the cursor is on once the team is sorted by leve
 
   expect(app.save.box[0].species, 'and d sent the row under it away').toBe(4)
   expect(app.save.party.map((mon) => mon.species)).toEqual([25, 1])
+})
+
+test('Should carry a move up the list and keep the order it was left in', () => {
+  const app = createApp({
+    screen: stubScreen(),
+    save: createSave({ trainer: 'Red', starterId: 4, rng: makeRng(1) }),
+    config: { ...DEFAULT_CONFIG },
+  })
+
+  app.save.party[0].moves = ['scratch', 'growl', 'ember'].map(makeMoveSlot)
+
+  app.openHomeSelection('team')
+
+  expect(teamText(app), 'the team screen offers the moves').toContain(
+    '[m] moves',
+  )
+
+  press(app, 'm')
+
+  expect(app.mode).toBe('moves')
+  expect(
+    movesText(app),
+    'the moves are listed in the order they are in',
+  ).toContain('Ember')
+
+  press(app, 'down')
+  press(app, 'down')
+  press(app, 'enter')
+
+  expect(
+    movesText(app),
+    'the one in hand is marked and the hint follows it',
+  ).toContain('↕ Ember')
+  expect(movesText(app)).toContain('[enter] put it down')
+
+  press(app, 'up')
+  press(app, 'up')
+  press(app, 'enter')
+
+  expect(
+    app.save.party[0].moves.map((slot) => slot.move),
+    'the move it carried leads, the rest slid down',
+  ).toEqual(['ember', 'scratch', 'growl'])
+  expect(
+    loadSave().party[0].moves.map((slot) => slot.move),
+    'and the new order outlived the screen',
+  ).toEqual(['ember', 'scratch', 'growl'])
+
+  press(app, 'escape')
+
+  expect(app.mode, 'the moves belong to the team screen').toBe('team')
+})
+
+test('Should have nothing to carry when a Pokemon only knows the one move', () => {
+  const app = createApp({
+    screen: stubScreen(),
+    save: createSave({ trainer: 'Red', starterId: 4, rng: makeRng(1) }),
+    config: { ...DEFAULT_CONFIG },
+  })
+
+  app.save.party[0].moves = [makeMoveSlot('scratch')]
+
+  app.openHomeSelection('team')
+  press(app, 'm')
+
+  expect(movesText(app)).toContain('It only knows the one move.')
+
+  press(app, 'enter')
+  press(app, 'up')
+
+  expect(
+    app.save.party[0].moves.map((slot) => slot.move),
+    'there is nowhere for it to go',
+  ).toEqual(['scratch'])
+
+  press(app, 'm')
+
+  expect(app.mode, 'and m closes the screen it opened').toBe('team')
 })
 
 test('Should reach the Pokemon under the cursor with an item while the team is sorted by level', () => {

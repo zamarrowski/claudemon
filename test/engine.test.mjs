@@ -17,6 +17,7 @@ import {
   levelUpEvolution,
   pendingEvolution,
   refreshStats,
+  reorderMoves,
   rollShiny,
   speciesGender,
   speciesName,
@@ -155,6 +156,31 @@ test('Should tell stone evolutions from level-up ones at a glance', () => {
     item: null,
   })
   expect(levelUpEvolution(aPokemon(25, 10))).toBe(null)
+})
+
+test('Should carry a move to any place in the list and leave the rest in order', () => {
+  const mon = aPokemon(4, 20)
+
+  mon.moves = ['scratch', 'growl', 'ember', 'smokescreen'].map(makeMoveSlot)
+
+  reorderMoves(mon, 2, 0)
+
+  expect(
+    mon.moves.map((slot) => slot.move),
+    'the move it carried up sits on top, the others slid down',
+  ).toEqual(['ember', 'scratch', 'growl', 'smokescreen'])
+
+  reorderMoves(mon, 0, 3)
+
+  expect(
+    mon.moves.map((slot) => slot.move),
+    'and rolling it off the top puts it at the bottom',
+  ).toEqual(['scratch', 'growl', 'smokescreen', 'ember'])
+
+  expect(
+    mon.moves.map((slot) => slot.pp),
+    'every slot kept its own PP through the shuffling',
+  ).toEqual([35, 40, 20, 25])
 })
 
 test('Should read the gender off the Attack IV against the species ratio', () => {
