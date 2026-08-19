@@ -1,5 +1,5 @@
 import { bold, brightGreen, brightRed, brightYellow, dim } from '../ansi.mjs'
-import { centre, panel } from '../widgets.mjs'
+import { centre, hintLine, panel } from '../widgets.mjs'
 import {
   APP_TITLE,
   MAX_UPDATE_WIDTH,
@@ -91,7 +91,7 @@ export const draw = (ctx, size) => {
 
   while (lines.length < rows - 1) lines.push('')
 
-  lines.push(dim(updateFooter(run)))
+  lines.push(hintLine(updateFooter(run)))
 
   return { lines, overlays: [] }
 }

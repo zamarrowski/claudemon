@@ -2,6 +2,7 @@ import { ITEMS } from '../../constants.mjs'
 import { SHOP_STOCK, countOf } from '../../shop.mjs'
 import { bold, brightYellow, dim, gray } from '../ansi.mjs'
 import {
+  hintLine,
   menuList,
   money,
   padLeft,
@@ -56,7 +57,7 @@ export const draw = (ctx, size) => {
   }
 
   const chosen = ITEMS[SHOP_STOCK[ctx.shopSelection]]
-  const prompt = ctx.shopMessage ?? dim(SHOP_PROMPT)
+  const prompt = ctx.shopMessage ?? hintLine(SHOP_PROMPT)
 
   lines.push('')
 
@@ -64,7 +65,7 @@ export const draw = (ctx, size) => {
     lines.push(` ${row}`)
   }
 
-  return { lines: withFooter(lines, dim(SHOP_HINTS), rows), overlays: [] }
+  return { lines: withFooter(lines, hintLine(SHOP_HINTS), rows), overlays: [] }
 }
 
 export const onKey = (ctx, key) => {

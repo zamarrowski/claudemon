@@ -7,6 +7,7 @@ import { bold, brightYellow, dim, gray } from '../ansi.mjs'
 import { fitCanvasCols, loadSprite } from '../sprite.mjs'
 import {
   genderTag,
+  hintLine,
   hpBar,
   menuList,
   padRight,
@@ -154,7 +155,7 @@ export const draw = (ctx, size) => {
   }
 
   return {
-    lines: withFooter(lines, dim(DEX_HINTS), rows),
+    lines: withFooter(lines, hintLine(DEX_HINTS), rows),
     overlays,
   }
 }

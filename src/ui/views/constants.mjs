@@ -119,7 +119,8 @@ export const EVOLUTION_WORDING = {
 
 export const DEX_SORT = { number: 'number', name: 'name' }
 export const DEX_SORT_LABELS = { number: '#', name: 'A–Z' }
-export const DEX_HINTS = ' ↑ ↓ browse · PgUp/PgDn jump · [s] sort · [esc] back'
+export const DEX_HINTS =
+  ' ↑ ↓ browse · [PgUp/PgDn] jump · [s] sort · [esc] back'
 
 export const TEAM_TITLE = 'TEAM'
 export const BAG_TITLE = 'BAG'

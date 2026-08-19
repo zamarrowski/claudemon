@@ -18,6 +18,7 @@ import { hitOverlays } from '../hit.mjs'
 import {
   expBar,
   genderTag,
+  hintLine,
   hpBar,
   menuGrid,
   menuList,
@@ -270,7 +271,7 @@ const messageBody = (ctx, width) => {
       )
 
       if (labels.length === 0)
-        return [EMPTY_BAG_MESSAGE, dim(BATTLE_PROMPTS.back)]
+        return [EMPTY_BAG_MESSAGE, hintLine(BATTLE_PROMPTS.back)]
 
       return [
         BATTLE_PROMPTS.useItem,

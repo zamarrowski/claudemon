@@ -1071,7 +1071,7 @@ const MENU_SCREENS = [
   ['DAY CARE', drawDaycare, '[esc] back', DAYCARE_CTX],
   ['DAY CARE EMPTY', drawDaycare, '[esc] back', MENU_CTX],
   ['DAY CARE PICK', drawDaycare, '[enter] leave it here', DAYCARE_PICK_CTX],
-  ['POKÉDEX', drawDex, 'PgUp/PgDn jump', MENU_CTX],
+  ['POKÉDEX', drawDex, '[PgUp/PgDn] jump', MENU_CTX],
   ['SHOP', drawShop, '[5] buy five', MENU_CTX],
   ['OPTION', drawOptions, '← → change', MENU_CTX],
   ['GYMS', drawGyms, '[enter] challenge the gym', MENU_CTX],
