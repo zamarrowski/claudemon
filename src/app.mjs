@@ -628,7 +628,11 @@ export const createApp = ({
     if (!egg && layNextEgg(ctx)) return true
     if (egg && advanceEgg(ctx, egg)) return true
 
-    if (taught) return true
+    if (taught) {
+      ctx.persist()
+
+      return true
+    }
 
     if (daycareSteps % DAYCARE_STEPS_PER_SAVE === 0) ctx.persist()
 
@@ -970,8 +974,6 @@ const announceDaycareMoves = (ctx, steps) => {
 
   ctx.notice = lines[0]
   ctx.daycareMessage = lines
-
-  ctx.persist()
 
   return true
 }

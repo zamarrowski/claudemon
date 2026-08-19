@@ -243,7 +243,7 @@ test('Should drop the oldest move of one that waits with all four slots taken', 
   const steps = raiseDaycare(save)
 
   expect(steps).toMatchObject([
-    { kind: 'learn-swap', move: 'poison-powder', forgot: 'tackle' },
+    { kind: 'learn', move: 'poison-powder', forgot: 'tackle' },
   ])
   expect(
     mon.moves.map((slot) => slot.move),

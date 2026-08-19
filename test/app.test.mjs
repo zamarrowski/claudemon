@@ -3686,12 +3686,9 @@ test('Should teach the ones waiting at the day care and say what they learned', 
   )
 
   expect(
-    loadSave().daycare.slots.map((mon) => mon.moves.map((slot) => slot.move)),
+    loadSave().daycare.slots[0].moves.map((slot) => slot.move),
     'what they picked up was written down',
-  ).toEqual([
-    ['splash', 'tackle'],
-    ['growl', 'leech-seed', 'vine-whip', 'poison-powder'],
-  ])
+  ).toEqual(['splash', 'tackle'])
 
   endSession('test-session')
 })

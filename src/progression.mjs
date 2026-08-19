@@ -12,23 +12,27 @@ import {
 } from './pokemon.mjs'
 import { markCaught } from './state.mjs'
 
-const learnMovesAt = (mon, level) => {
+const learnOne = (mon, learned, unattended) => {
+  const full = mon.moves.length >= MOVE_LIMIT
+
+  if (full && !unattended) {
+    return { kind: 'learn-choice', move: learned, mon, name: displayName(mon) }
+  }
+
+  const forgot = full ? mon.moves.shift().move : null
+
+  mon.moves.push(makeMoveSlot(learned))
+
+  return { kind: 'learn', move: learned, forgot, mon, name: displayName(mon) }
+}
+
+const learnMovesAt = (mon, level, unattended = false) => {
   const steps = []
 
-  for (const name of movesLearnedAt(mon.species, level)) {
-    if (mon.moves.some((slot) => slot.move === name)) continue
+  for (const learned of movesLearnedAt(mon.species, level)) {
+    if (mon.moves.some((slot) => slot.move === learned)) continue
 
-    if (mon.moves.length < MOVE_LIMIT) {
-      mon.moves.push(makeMoveSlot(name))
-      steps.push({ kind: 'learn', move: name, mon, name: displayName(mon) })
-    } else {
-      steps.push({
-        kind: 'learn-choice',
-        move: name,
-        mon,
-        name: displayName(mon),
-      })
-    }
+    steps.push(learnOne(mon, learned, unattended))
   }
 
   return steps
@@ -101,24 +105,7 @@ export const applyVictory = (save, mons, rewards) => {
 export const learnEvolutionMoves = (mon) => learnMovesAt(mon, levelOf(mon))
 
 export const learnMovesUnattended = (mon, level) => {
-  const steps = []
-
-  for (const learned of movesLearnedAt(mon.species, level)) {
-    if (mon.moves.some((slot) => slot.move === learned)) continue
-
-    const forgot = mon.moves.length < MOVE_LIMIT ? null : mon.moves.shift().move
-
-    mon.moves.push(makeMoveSlot(learned))
-    steps.push({
-      kind: forgot ? 'learn-swap' : 'learn',
-      move: learned,
-      forgot,
-      mon,
-      name: displayName(mon),
-    })
-  }
-
-  return steps
+  return learnMovesAt(mon, level, true)
 }
 
 export const learnMove = (mon, newMove, slotIndex) => {
@@ -133,6 +120,12 @@ export const learnMove = (mon, newMove, slotIndex) => {
   return { learned: true, forgot }
 }
 
+const learnedLine = (step) => {
+  if (!step.forgot) return `${step.name} learned ${moveData(step.move).name}!`
+
+  return `${step.name} forgot ${moveData(step.forgot).name} and learned ${moveData(step.move).name}!`
+}
+
 export const describeStep = (step) => {
   switch (step.kind) {
     case 'money':
@@ -142,11 +135,7 @@ export const describeStep = (step) => {
     case 'level':
       return [`${step.name} grew to level ${step.level}!`]
     case 'learn':
-      return [`${step.name} learned ${moveData(step.move).name}!`]
-    case 'learn-swap':
-      return [
-        `${step.name} forgot ${moveData(step.forgot).name} and learned ${moveData(step.move).name}!`,
-      ]
+      return [learnedLine(step)]
     case 'learn-choice':
       return [
         `${step.name} wants to learn ${moveData(step.move).name},`,
