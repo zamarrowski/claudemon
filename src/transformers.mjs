@@ -164,6 +164,14 @@ export const transformResponseActivity = (entry) => {
 
 export const transformRequestWriteActivity = (entry) => mapActivity(entry)
 
+const mapStarPrompt = (starPrompt) => {
+  return {
+    askedAt: starPrompt.askedAt,
+    asks: starPrompt.asks,
+    answered: starPrompt.answered,
+  }
+}
+
 const mapConfig = (config) => {
   return {
     encounterChance: config.encounterChance,
@@ -178,6 +186,9 @@ const mapConfig = (config) => {
     spriteScale: config.spriteScale,
     wrappedStatusLine: config.wrappedStatusLine,
     probeRows: config.probeRows,
+    starPrompt: config.starPrompt
+      ? mapStarPrompt(config.starPrompt)
+      : undefined,
   }
 }
 

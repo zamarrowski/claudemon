@@ -7,6 +7,7 @@ import {
 } from 'node:fs'
 import {
   DEFAULT_CONFIG,
+  DEFAULT_STAR_PROMPT,
   SPRITE_SCALE_MAX,
   SPRITE_SCALE_MIN,
 } from './constants.mjs'
@@ -30,6 +31,14 @@ const withStored = (stored, patch) => {
   return { ...stored, ...patch }
 }
 
+const withStarPrompt = (stored) => {
+  return {
+    askedAt: stored?.askedAt ?? DEFAULT_STAR_PROMPT.askedAt,
+    asks: stored?.asks ?? DEFAULT_STAR_PROMPT.asks,
+    answered: stored?.answered ?? DEFAULT_STAR_PROMPT.answered,
+  }
+}
+
 const withDefaults = (stored) => {
   return {
     encounterChance: stored.encounterChance ?? DEFAULT_CONFIG.encounterChance,
@@ -46,6 +55,7 @@ const withDefaults = (stored) => {
     wrappedStatusLine:
       stored.wrappedStatusLine ?? DEFAULT_CONFIG.wrappedStatusLine,
     probeRows: stored.probeRows ?? DEFAULT_CONFIG.probeRows,
+    starPrompt: withStarPrompt(stored.starPrompt),
   }
 }
 

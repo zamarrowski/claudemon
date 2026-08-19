@@ -1,6 +1,7 @@
 import { spriteScale, updateCheckMode } from '../../config.mjs'
 import { spriteFile } from '../../paths.mjs'
 import { hasPlayer } from '../../sound.mjs'
+import { starAskAllowed, starAskPatch } from '../../star.mjs'
 import { bold, brightYellow, dim, gray } from '../ansi.mjs'
 import { NATIVE_CANVAS_COLS } from '../constants.mjs'
 import {
@@ -22,6 +23,7 @@ import {
   SOUND_LABELS,
   SOUND_NOTES,
   SPRITE_SCALE_VALUES,
+  STAR_ASK_VALUES,
   UPDATE_CHECK_BY_MODE,
   UPDATE_CHECK_VALUES,
 } from './constants.mjs'
@@ -60,6 +62,13 @@ export const SETTINGS = [
     label: SETTING_LABELS.updateCheck,
     read: (config) => UPDATE_CHECK_BY_MODE[updateCheckMode(config)],
     values: UPDATE_CHECK_VALUES,
+  },
+  {
+    key: 'starPrompt',
+    label: SETTING_LABELS.starPrompt,
+    read: (config) => starAskAllowed(config),
+    values: STAR_ASK_VALUES,
+    patch: (config, value) => starAskPatch(config, value),
   },
 ]
 
@@ -141,8 +150,14 @@ const change = (ctx, delta) => {
     currentIndex(setting, ctx.config) + delta,
     setting.values.length,
   )
+  const value = setting.values[next].value
 
-  ctx.applyConfig({ [setting.key]: setting.values[next].value })
+  if (setting.patch) {
+    ctx.applyConfig(setting.patch(ctx.config, value))
+    return
+  }
+
+  ctx.applyConfig({ [setting.key]: value })
 }
 
 export const onKey = (ctx, key) => {
