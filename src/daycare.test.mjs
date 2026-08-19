@@ -19,6 +19,7 @@ import {
   takeBackFromDaycare,
   walkEgg,
 } from './daycare.mjs'
+import { expForLevel } from './exp.mjs'
 import { createPokemon, levelOf } from './pokemon.mjs'
 import { makeRng } from './rng.mjs'
 
@@ -31,6 +32,7 @@ const MEWTWO = 150
 const NIDORAN_F = 29
 const NIDORINO = 33
 const BULBASAUR = 1
+const MAGIKARP = 129
 const IVYSAUR = 2
 const PIKACHU = 25
 const RATTATA = 19
@@ -207,6 +209,46 @@ test('Should raise whoever waits, and restat them on the level they reach', () =
     mon.stats.attack,
     'and the new level shows in the stats',
   ).toBeGreaterThan(before.attack)
+})
+
+test('Should teach whoever waits the move that comes with the level it reaches', () => {
+  const mon = aMon(MAGIKARP, null, 14)
+
+  mon.exp = expForLevel(MAGIKARP, 15) - 1
+
+  const save = aSave({ slots: [mon] })
+  const steps = raiseDaycare(save)
+
+  expect(levelOf(mon)).toBe(15)
+  expect(steps).toMatchObject([
+    { kind: 'learn', move: 'tackle', forgot: null, name: 'Magikarp' },
+  ])
+  expect(mon.moves.map((slot) => slot.move)).toEqual(['splash', 'tackle'])
+})
+
+test('Should drop the oldest move of one that waits with all four slots taken', () => {
+  const mon = aMon(BULBASAUR, null, 19)
+
+  mon.exp = expForLevel(BULBASAUR, 20) - 1
+
+  const save = aSave({ slots: [mon] })
+
+  expect(mon.moves.map((slot) => slot.move)).toEqual([
+    'tackle',
+    'growl',
+    'leech-seed',
+    'vine-whip',
+  ])
+
+  const steps = raiseDaycare(save)
+
+  expect(steps).toMatchObject([
+    { kind: 'learn-swap', move: 'poison-powder', forgot: 'tackle' },
+  ])
+  expect(
+    mon.moves.map((slot) => slot.move),
+    'nobody was there to be asked, so the one it has known longest goes',
+  ).toEqual(['growl', 'leech-seed', 'vine-whip', 'poison-powder'])
 })
 
 test('Should stop feeding EXP to one that is already at the highest level', () => {

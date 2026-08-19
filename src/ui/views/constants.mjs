@@ -168,7 +168,8 @@ export const DAYCARE_NOTES = {
   needTwo: 'Leave two here and they might get on.',
   getAlong: 'The two seem to get along.',
   noSpark: 'The two prefer to play with other Pokémon.',
-  raising: 'Whoever waits here keeps gaining EXP while Claude works.',
+  raising:
+    'Whoever waits here gains EXP and picks up moves while Claude works.',
   noEgg: 'No egg yet.',
   inside: 'Something is moving inside.',
   onlyWhileOpen: 'It only comes along while Claude works and this is open.',

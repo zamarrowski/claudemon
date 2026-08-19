@@ -100,6 +100,27 @@ export const applyVictory = (save, mons, rewards) => {
 
 export const learnEvolutionMoves = (mon) => learnMovesAt(mon, levelOf(mon))
 
+export const learnMovesUnattended = (mon, level) => {
+  const steps = []
+
+  for (const learned of movesLearnedAt(mon.species, level)) {
+    if (mon.moves.some((slot) => slot.move === learned)) continue
+
+    const forgot = mon.moves.length < MOVE_LIMIT ? null : mon.moves.shift().move
+
+    mon.moves.push(makeMoveSlot(learned))
+    steps.push({
+      kind: forgot ? 'learn-swap' : 'learn',
+      move: learned,
+      forgot,
+      mon,
+      name: displayName(mon),
+    })
+  }
+
+  return steps
+}
+
 export const learnMove = (mon, newMove, slotIndex) => {
   if (slotIndex === null || slotIndex === undefined) {
     return { learned: false, forgot: null }
@@ -122,6 +143,10 @@ export const describeStep = (step) => {
       return [`${step.name} grew to level ${step.level}!`]
     case 'learn':
       return [`${step.name} learned ${moveData(step.move).name}!`]
+    case 'learn-swap':
+      return [
+        `${step.name} forgot ${moveData(step.forgot).name} and learned ${moveData(step.move).name}!`,
+      ]
     case 'learn-choice':
       return [
         `${step.name} wants to learn ${moveData(step.move).name},`,
