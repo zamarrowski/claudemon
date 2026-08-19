@@ -26,6 +26,13 @@ import { move as moveData, species } from './data.mjs'
 import { effectiveSpeed, moveSlotOf, stageMultiplier } from './battleActor.mjs'
 import { applyDamage, applyHeal, label, other, say } from './battleEvents.mjs'
 import { attemptCatch } from './capture.mjs'
+import {
+  beginCharge,
+  beginRecharge,
+  blockedByRecharge,
+  cancelLock,
+  takeChargedMove,
+} from './chargeMoves.mjs'
 import { computeDamage, FIXED_DAMAGE } from './damage.mjs'
 import {
   expFromDefeating,
@@ -423,23 +430,24 @@ const resolveMove = (battle, attackerSide, move, events) => {
   }
 }
 
-const useMove = (battle, attackerSide, moveIndex, events) => {
+const selectMove = (battle, attackerSide, moveIndex, events) => {
   const attacker = battle[attackerSide]
+  const charged = takeChargedMove(attacker)
 
-  if (blockedByStatus(battle, attackerSide, events)) return
-  if (blockedByVolatile(battle, attackerSide, events)) return
+  if (charged) return charged
 
   const slot = moveSlotOf(attacker, moveIndex)
   const disabled = slot != null && isMoveDisabled(attacker, moveIndex)
 
-  let move
-
   if (slot && !disabled) {
-    move = { ...moveData(slot.move), key: slot.move }
     slot.pp--
-  } else if (!hasUsableMove(attacker)) {
-    move = { ...STRUGGLE.data, key: STRUGGLE.move }
-  } else if (disabled) {
+
+    return { ...moveData(slot.move), key: slot.move }
+  }
+
+  if (!hasUsableMove(attacker)) return { ...STRUGGLE.data, key: STRUGGLE.move }
+
+  if (disabled) {
     const who = label(battle, attackerSide)
 
     say(
@@ -447,18 +455,43 @@ const useMove = (battle, attackerSide, moveIndex, events) => {
       `${who}'s ${moveData(slot.move).name} ${TURN_MESSAGES.disabled}`,
     )
 
-    return
-  } else {
-    say(events, TURN_MESSAGES.noPp)
+    return null
+  }
+
+  say(events, TURN_MESSAGES.noPp)
+
+  return null
+}
+
+const useMove = (battle, attackerSide, moveIndex, events) => {
+  const attacker = battle[attackerSide]
+
+  if (blockedByStatus(battle, attackerSide, events)) {
+    cancelLock(attacker)
     return
   }
 
+  if (blockedByVolatile(battle, attackerSide, events)) {
+    cancelLock(attacker)
+    return
+  }
+
+  if (blockedByRecharge(battle, attackerSide, events)) return
+
+  const move = selectMove(battle, attackerSide, moveIndex, events)
+
+  if (!move) return
+
   say(events, `${label(battle, attackerSide)} used ${move.name}!`)
+
+  if (beginCharge(battle, attackerSide, move, moveIndex, events)) return
 
   resolveMove(battle, attackerSide, move, events)
 
   if (SELF_KO_MOVES.has(move.key))
     applyDamage(battle, attackerSide, attacker.mon.hp, events)
+
+  beginRecharge(attacker, move, moveIndex)
 }
 
 const endOfTurnDamage = (battle, side, events) => {

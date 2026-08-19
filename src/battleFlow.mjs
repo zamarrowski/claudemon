@@ -1,5 +1,6 @@
 import { isWorking } from './activity.mjs'
 import { sendOutAfterFaint, submitAction, switchIn } from './battle.mjs'
+import { isLocked, lockedMoveIndex } from './chargeMoves.mjs'
 import {
   BATTLE_ITEM_KINDS,
   BATTLE_MESSAGES,
@@ -140,6 +141,18 @@ const openMenu = (battle, name) => {
   syncBars(battle)
 }
 
+const resumeTurn = (ctx) => {
+  const battle = ctx.battle
+  const player = battle.state.player
+
+  if (!isLocked(player)) {
+    openMenu(battle, 'main')
+    return
+  }
+
+  takeAction(ctx, { type: 'move', index: lockedMoveIndex(player) })
+}
+
 export const advanceMessage = (ctx) => {
   const battle = ctx.battle
 
@@ -164,7 +177,7 @@ export const advanceMessage = (ctx) => {
     return
   }
 
-  openMenu(battle, 'main')
+  resumeTurn(ctx)
 }
 
 export const tickBattle = (ctx) => {
@@ -399,7 +412,7 @@ const takeAction = (ctx, action, silentFirst = false) => {
   queueEvents(ctx, submitAction(battle.state, action))
 
   if (battle.state.over) beginPostBattle(ctx)
-  else if (!battle.message && !silentFirst) openMenu(battle, 'main')
+  else if (!battle.message && !silentFirst) resumeTurn(ctx)
 }
 
 const beginPostBattle = (ctx) => {

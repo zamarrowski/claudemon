@@ -23,6 +23,14 @@ export const FOE_AI_SCORES = { defaultPower: 40, status: 15, selfKo: 0 }
 export const FOE_AI_SELF_KO_HP_RATIO = 0.3
 export const OHKO_MOVES = new Set(['guillotine', 'horn-drill', 'fissure'])
 export const SELF_KO_MOVES = new Set(['self-destruct', 'explosion'])
+export const RECHARGE_MOVES = new Set(['hyper-beam'])
+
+export const CHARGE_MOVES = {
+  dig: 'burrowed underground!',
+  'solar-beam': 'absorbed light!',
+  'skull-bash': 'lowered its head!',
+  'sky-attack': 'is glowing!',
+}
 
 export const UNSUPPORTED_MOVES = new Set([
   'counter',
@@ -104,6 +112,7 @@ export const TURN_MESSAGES = {
   thawedOut: 'thawed out!',
   frozenSolid: 'is frozen solid!',
   fullyParalysed: "is paralysed and can't move!",
+  mustRecharge: 'must recharge!',
 }
 
 export const FOE_LABELS = { wild: 'the wild', trainer: "the foe's" }

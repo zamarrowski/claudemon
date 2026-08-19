@@ -1487,6 +1487,38 @@ test('Should have the bars telling the truth again by the time you choose', () =
   expect(battle.hp.player).toBe(battle.state.player.mon.hp)
 })
 
+test('Should see a charging move through on its own instead of asking again', () => {
+  const app = createApp({
+    screen: stubScreen(),
+    save: createSave({ trainer: 'Red', starterId: 1, rng: makeRng(1) }),
+    config: { ...DEFAULT_CONFIG },
+  })
+
+  const battle = duel(app)
+
+  battle.state.player.mon.moves = [makeMoveSlot('dig')]
+
+  const foeHp = battle.state.foe.mon.hp
+
+  attack(app)
+
+  expect(battle.message).toBe('Charmander used Dig!')
+
+  let guard = 0
+
+  while (battle.state.foe.mon.hp === foeHp && guard++ < 30) {
+    expect(battle.menu, 'you get no say while it is underground').toBe(null)
+
+    press(app, 'enter')
+  }
+
+  expect(guard, 'the dig should come up on its own').toBeLessThan(30)
+
+  clearMessages(app)
+
+  expect(battle.menu, 'and then it is your turn again').toBe('main')
+})
+
 test('Should fill the bar with a potion rather than jumping it', () => {
   const app = createApp({
     screen: stubScreen(),

@@ -29,6 +29,7 @@ export const emptyVolatile = () => {
     trap: null,
     leechSeed: false,
     disable: null,
+    locked: null,
   }
 }
 

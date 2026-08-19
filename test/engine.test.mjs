@@ -368,6 +368,36 @@ test('Should damage the foe and spend a PP when attacking', () => {
   expect(events.some((event) => event.type === 'damage')).toBe(true)
 })
 
+test('Should dig in for a turn and land the blow on the next one, for a single PP', () => {
+  const player = aPokemon(4, 20)
+
+  player.moves = [makeMoveSlot('dig')]
+
+  const battle = createBattle({
+    playerMon: player,
+    wildMon: aPokemon(19, 15),
+    seed: 7,
+  })
+  const foeHp = battle.foe.mon.hp
+
+  const digging = submitAction(battle, { type: 'move', index: 0 })
+
+  expect(textsOf(digging)).toContain('Charmander burrowed underground!')
+  expect(battle.foe.mon.hp, 'nothing lands from down there').toBe(foeHp)
+
+  const landing = submitAction(battle, { type: 'move', index: 0 })
+
+  expect(battle.foe.mon.hp, 'the hole pays off a turn later').toBeLessThan(
+    foeHp,
+  )
+  expect(textsOf(landing), 'and it comes straight back up').not.toContain(
+    'Charmander burrowed underground!',
+  )
+  expect(battle.player.mon.moves[0].pp, 'the whole thing costs one PP').toBe(
+    moveOf('dig').pp - 1,
+  )
+})
+
 test('Should end the battle in a win that pays out when the foe is beaten', () => {
   const battle = createBattle({
     playerMon: aPokemon(4, 40),
