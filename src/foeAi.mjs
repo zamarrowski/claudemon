@@ -1,4 +1,5 @@
 import { effectiveSpeed, moveSlotOf } from './battleActor.mjs'
+import { isLocked, lockedMoveIndex } from './chargeMoves.mjs'
 import {
   FOE_AI_SCORES,
   FOE_AI_SELF_KO_HP_RATIO,
@@ -28,6 +29,8 @@ const scoreFoeMove = (slot, mon, playerTypes) => {
 }
 
 export const pickFoeMove = (battle) => {
+  if (isLocked(battle.foe)) return lockedMoveIndex(battle.foe)
+
   const playerTypes = species(battle.player.mon.species).types
   const mon = battle.foe.mon
 
