@@ -18,7 +18,7 @@ src/                 the engine (battle, capture, exp, state, queue, sound, upda
 src/ui/              rendering primitives (screen, ansi, sprite, grass, widgets)
 src/ui/views/        one file per screen, each exporting draw() and onKey()
 scripts/             Claude Code hook handlers and the status line
-tools/               dev-time scripts (fetch data, fetch sprites, preview, install)
+tools/               dev-time scripts (fetch data, fetch sprites, preview, capture, install)
 test/                test suites
 data/                generated dataset, checked in — never hand-edited
 ```

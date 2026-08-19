@@ -68,6 +68,50 @@ node tools/preview.mjs battle 100 34 # at a given size
 
 Pass an unknown name and it prints the list of scenes.
 
+### Retaking the screenshots
+
+Every capture in `docs/` — the README's and the landing page's — comes out of
+`tools/capture.mjs`, so the whole set is one command rather than twelve trips to a
+terminal with a screenshot key:
+
+```bash
+node tools/capture.mjs                 # the whole set
+node tools/capture.mjs battle.png      # just one
+```
+
+It renders the same scenes `preview.mjs` does, turns the ANSI into a grid of cells,
+and paints that grid into a canvas in headless Chrome. Two things have to be in place:
+the sprites (`node tools/install.mjs`), and Chrome, at
+`/Applications/Google Chrome.app` unless `CLAUDEMON_CHROME` points somewhere else. It
+runs against a throwaway `CLAUDEMON_HOME` that only borrows your sprites, so your own
+save is never read and never written.
+
+The recipe is in `tools/constants.mjs`, and the numbers in it are load-bearing:
+
+- **One save for every shot.** `sampleSave()` in `tools/scenes.mjs`, built from the
+  `PREVIEW_*` constants. One save is what stops the Pokédex count in one shot
+  contradicting the team in the next.
+- **One cell size, one font, one palette.** 20×40 device pixels per cell, Menlo,
+  and `CAPTURE_PALETTE`. Text is the same apparent size in every shot because every
+  shot is 100 columns wide and shown in the same column.
+- **Twice the pixels of the column it lands in.** 100 columns × 20px is 2000, and
+  the landing's column is 1000, so a retina display gets one device pixel per image
+  pixel and a grid of quadrant glyphs stays a grid. `test/docs.test.mjs` holds the
+  two numbers together — change the column in `docs/index.html` and it fails.
+- **Rows per screen.** `CAPTURE_SHOTS` picks the row count that leaves no band of
+  dead black at the bottom. Height is also what buys sprite detail: the canvas costs
+  half as many rows as columns, so a taller tab is a sharper Pokémon, and the
+  trainer shot is 66 rows because that is where its canvas reaches the 96 columns
+  the source sprites actually have.
+
+`card-team.png` is not a capture — it is the game's own card export (`src/ui/card.mjs`)
+at 2×, which is why it is 2400 wide. `docs/sprites/*.png` and `docs/card.png` are not
+captures either and the tool leaves them alone.
+
+After retaking a shot, update the `width` and `height` attributes in
+`docs/index.html` to match. They are there to stop layout shift, so a stale pair is a
+bug, and the test suite fails on one.
+
 ## The checks
 
 Three commands, in this order. They are what CI runs and what `.githooks/pre-commit`
@@ -102,7 +146,7 @@ src/                 the engine (battle, capture, exp, state, queue, sound, upda
 src/ui/              rendering primitives (screen, ansi, sprite, grass, widgets)
 src/ui/views/        one file per screen, each exporting draw() and onKey()
 scripts/             Claude Code hook handlers and the status line
-tools/               dev-time scripts (fetch data, fetch sprites, preview, install)
+tools/               dev-time scripts (fetch data, fetch sprites, preview, capture, install)
 test/                test suites
 data/                generated dataset, checked in — never hand-edited
 ```

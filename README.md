@@ -19,16 +19,14 @@ waiting for you.
 The original 151. Fully local — no account, no backend, nothing about you leaving the
 machine.
 
-<table>
-<tr>
-<td width="58%" valign="top"><img src="docs/home.png" alt="The home screen: an activity line reading Claude is working, Read, 3m09s, someone standing in a band of grass, and a team of five listed below"></td>
-<td width="42%" valign="top"><img src="docs/battle.png" alt="A battle: a wild Venonat facing your Squirtle, both drawn as pixel sprites, with health bars and a FIGHT / BAG / POKÉMON / RUN menu"></td>
-</tr>
-<tr>
-<td valign="top">Waiting, which is most of it. The walk only moves while Claude does, so you can tell from across the desk without reading anything.</td>
-<td valign="top">And when something does jump out.</td>
-</tr>
-</table>
+<img src="docs/home.png" alt="The home screen: an activity line reading Claude is working, Bash, 1m14s, someone standing in a band of grass, and a team of six listed below with their levels and health">
+
+Waiting, which is most of it. The walk only moves while Claude does, so you can tell
+from across the desk without reading anything.
+
+<img src="docs/battle.png" alt="A battle: a wild Vileplume at Lv42 facing your Charizard, both drawn as pixel sprites, with health bars and a FIGHT / BAG / POKÉMON / RUN menu">
+
+And when something does jump out.
 
 It lives in a terminal tab of its own, next to the one you work in. The status line
 in Claude tells you something is waiting; the game tab is where you go and fight it.
@@ -210,16 +208,14 @@ battle message. That is the whole scheme — it is the same everywhere.
 | Trainer | Everything the game has been counting: battles won, lost and run from, the streak of days you have opened it, the hours Claude has worked beside you, and fifteen achievements with how far along each one is. `s` writes the trainer card |
 | Option | How big sprites are drawn, the menu sounds, the bell, when the version check runs — daily, every launch, or never — and whether the professor may ever ask for a star. `← →` changes a setting, and the Pokémon underneath redraws as you do |
 
-<table>
-<tr>
-<td width="50%"><img src="docs/pokedex.png" alt="The Pokédex: the list of all 151 down the left with seen and caught markers, and Charmander on the right with its base stats, catch rate and what it evolves into"></td>
-<td width="50%"><img src="docs/team.png" alt="The team screen: five Pokémon listed on the left, and Ditto on the right with its health, experience, stats and moves"></td>
-</tr>
-<tr>
-<td><b>Pokédex</b> — seen and caught are tracked apart, and the stats fill in for the ones you caught.</td>
-<td><b>Team</b> — <code>enter</code> changes which one leads.</td>
-</tr>
-</table>
+<img src="docs/pokedex.png" alt="The Pokédex: the list of all 151 down the left with seen and caught markers, 97 of them caught, and Pikachu on the right with its base stats, catch rate and the thunder stone it evolves with">
+
+**Pokédex** — seen and caught are tracked apart, and the stats fill in for the ones you
+caught.
+
+<img src="docs/team.png" alt="The team screen: six Pokémon listed on the left, and Pidgeot on the right with its health, experience, stats and moves">
+
+**Team** — `enter` changes which one leads.
 
 ## The trainer card
 
