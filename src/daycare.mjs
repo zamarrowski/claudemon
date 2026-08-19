@@ -12,6 +12,7 @@ import {
 import { species } from './data.mjs'
 import { canSpare, pokemonList } from './helpers.mjs'
 import { createPokemon, genderOf, levelOf, refreshStats } from './pokemon.mjs'
+import { learnMovesUnattended } from './progression.mjs'
 import { chance } from './rng.mjs'
 import { stow } from './state.mjs'
 
@@ -86,22 +87,39 @@ export const eggFromPair = (save, rng) => {
   return save.daycare.egg
 }
 
+const movesLearnedWhileWaiting = (mon, from, to) => {
+  const steps = []
+
+  for (let level = from; level <= to; level++)
+    steps.push(...learnMovesUnattended(mon, level))
+
+  return steps
+}
+
 const raiseOne = (mon) => {
   const before = levelOf(mon)
 
   mon.exp += DAYCARE_EXP_PER_STEP
 
-  if (levelOf(mon) !== before) refreshStats(mon)
+  const after = levelOf(mon)
+
+  if (after === before) return []
+
+  refreshStats(mon)
+
+  return movesLearnedWhileWaiting(mon, before + 1, after)
 }
 
 export const raiseDaycare = (save) => {
+  const steps = []
+
   for (const mon of save.daycare.slots) {
     if (levelOf(mon) >= MAX_LEVEL) continue
 
-    raiseOne(mon)
+    steps.push(...raiseOne(mon))
   }
 
-  return save
+  return steps
 }
 
 export const walkEgg = (egg) => {

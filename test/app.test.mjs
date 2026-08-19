@@ -29,7 +29,7 @@ const {
 const { GYM_MESSAGES: GYM_SCREEN_MESSAGES } =
   await import('../src/ui/views/constants.mjs')
 const { isDataReady } = await import('../src/data.mjs')
-const { expFromTrainerMon } = await import('../src/exp.mjs')
+const { expForLevel, expFromTrainerMon } = await import('../src/exp.mjs')
 const { clearEncounter, peekQueue, writeEncounter } =
   await import('../src/queue.mjs')
 const { addPokemon, createSave, loadSave } = await import('../src/state.mjs')
@@ -3646,6 +3646,49 @@ test('Should only bring the egg along while Claude works, and never in a gym', (
     'a gym run must not carry an egg it may undo',
   ).toBe(0)
   expect(app.save.daycare.egg.steps).toBe(3)
+
+  endSession('test-session')
+})
+
+test('Should teach the ones waiting at the day care and say what they learned', () => {
+  const app = createApp({
+    screen: stubScreen(),
+    save: createSave({ trainer: 'Red', starterId: 4, rng: makeRng(1) }),
+    config: { ...DEFAULT_CONFIG },
+  })
+
+  const magikarp = createPokemon(129, 14, makeRng(1))
+  const bulbasaur = createPokemon(1, 19, makeRng(2))
+
+  magikarp.exp = expForLevel(129, 15) - 1
+  bulbasaur.exp = expForLevel(1, 20) - 1
+
+  app.save.party.push(magikarp, bulbasaur)
+  app.openDaycare('home')
+  leaveOneAtDaycare(app, 1)
+  press(app, 'down')
+  leaveOneAtDaycare(app, 1)
+
+  reportSession('working', 'Bash')
+  app.refreshActivity()
+
+  expect(
+    runDaycareFrames(app, FRAMES_PER_DAYCARE_STEP),
+    'the step they grew on is one worth repainting',
+  ).toBe(1)
+
+  const text = daycareText(app)
+
+  expect(text).toContain('Magikarp learned Tackle!')
+  expect(text).toContain('Bulbasaur forgot Tackle and learned Poison Powder!')
+  expect(app.notice, 'and it carries over to the home screen').toBe(
+    'Magikarp learned Tackle!',
+  )
+
+  expect(
+    loadSave().daycare.slots[0].moves.map((slot) => slot.move),
+    'what they picked up was written down',
+  ).toEqual(['splash', 'tackle'])
 
   endSession('test-session')
 })

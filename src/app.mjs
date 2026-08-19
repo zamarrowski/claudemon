@@ -623,10 +623,16 @@ export const createApp = ({
 
     daycareSteps++
 
-    raiseDaycare(ctx.save)
+    const taught = announceDaycareMoves(ctx, raiseDaycare(ctx.save))
 
     if (!egg && layNextEgg(ctx)) return true
     if (egg && advanceEgg(ctx, egg)) return true
+
+    if (taught) {
+      ctx.persist()
+
+      return true
+    }
 
     if (daycareSteps % DAYCARE_STEPS_PER_SAVE === 0) ctx.persist()
 
@@ -959,6 +965,17 @@ const hatchIntoParty = (ctx, egg) => {
   ctx.daycareMessage = [headline, arrival]
 
   ctx.playSound(hatched.shiny ? 'shiny' : 'hatch')
+}
+
+const announceDaycareMoves = (ctx, steps) => {
+  if (steps.length === 0) return false
+
+  const lines = steps.flatMap(describeStep)
+
+  ctx.notice = lines[0]
+  ctx.daycareMessage = lines
+
+  return true
 }
 
 const layNextEgg = (ctx) => {
