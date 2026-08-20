@@ -5,15 +5,19 @@ import {
   transformRequestWriteActivity,
   transformRequestWriteConfig,
   transformRequestWriteEncounter,
+  transformRequestWriteInstance,
   transformRequestWriteStatus,
+  transformRequestWriteSteps,
   transformRequestWriteUpdateState,
   transformRequestWriteWorked,
   transformResponseActivity,
   transformResponseConfig,
   transformResponseEncounter,
+  transformResponseInstance,
   transformResponseManifest,
   transformResponseSave,
   transformResponseStatus,
+  transformResponseSteps,
   transformResponseTrade,
   transformResponseUpdateState,
   transformResponseWorked,
@@ -207,15 +211,17 @@ test('Should keep a field the game attached during play out of the save file', (
   expect(written.party[0].flashing).toBeUndefined()
 })
 
-test('Should map the worked ledger to the total and when it last moved', () => {
+test('Should map the worked ledger to the total, the watermark and when it last moved', () => {
   const worked = transformResponseWorked({
     totalMs: 1_800_000,
+    creditedTo: 1_700_000_000_000,
     updatedAt: '2026-08-08T09:00:00.000Z',
     session: 'abc',
   })
 
   expect(worked).toEqual({
     totalMs: 1_800_000,
+    creditedTo: 1_700_000_000_000,
     updatedAt: '2026-08-08T09:00:00.000Z',
   })
   expect(worked.session).toBeUndefined()
@@ -224,19 +230,88 @@ test('Should map the worked ledger to the total and when it last moved', () => {
 test('Should read a ledger written before a field existed as an empty total', () => {
   expect(transformResponseWorked({})).toEqual({
     totalMs: 0,
+    creditedTo: 0,
     updatedAt: null,
   })
   expect(transformResponseWorked(null)).toBeNull()
 })
 
-test('Should write the worked ledger with the same two fields', () => {
+test('Should write the worked ledger with the same three fields', () => {
   const written = transformRequestWriteWorked({
     totalMs: 60_000,
+    creditedTo: 1_700_000_000_000,
     updatedAt: '2026-08-08T09:00:00.000Z',
     session: 'abc',
   })
 
-  expect(Object.keys(written).sort()).toEqual(['totalMs', 'updatedAt'])
+  expect(Object.keys(written).sort()).toEqual([
+    'creditedTo',
+    'totalMs',
+    'updatedAt',
+  ])
+})
+
+test('Should map the step pool to the steps banked and the step clock', () => {
+  const pool = transformResponseSteps({
+    v: 1,
+    steps: 7,
+    carriedMs: 5000,
+    creditedTo: 1_700_000_000_000,
+    session: 'abc',
+  })
+
+  expect(pool).toEqual({
+    v: 1,
+    steps: 7,
+    carriedMs: 5000,
+    creditedTo: 1_700_000_000_000,
+  })
+  expect(transformResponseSteps(null)).toBeNull()
+  expect(
+    transformResponseSteps({ v: 1 }),
+    'a pool written before a field existed starts empty',
+  ).toEqual({ v: 1, steps: 0, carriedMs: 0, creditedTo: 0 })
+})
+
+test('Should write the step pool with the same four fields', () => {
+  const written = transformRequestWriteSteps({
+    v: 1,
+    steps: 3,
+    carriedMs: 5000,
+    creditedTo: 1_700_000_000_000,
+    session: 'abc',
+  })
+
+  expect(Object.keys(written).sort()).toEqual([
+    'carriedMs',
+    'creditedTo',
+    'steps',
+    'v',
+  ])
+})
+
+test('Should map the open window to the instance that holds it', () => {
+  const entry = transformResponseInstance({
+    v: 1,
+    id: '42-1700000000000',
+    pid: 42,
+    at: 1_700_000_000_000,
+    cwd: '/work',
+  })
+
+  expect(entry).toEqual({
+    v: 1,
+    id: '42-1700000000000',
+    pid: 42,
+    at: 1_700_000_000_000,
+  })
+  expect(transformResponseInstance(null)).toBeNull()
+  expect(Object.keys(transformRequestWriteInstance(entry)).sort()).toEqual([
+    'at',
+    'id',
+    'pid',
+    'v',
+  ])
 })
 
 test('Should map a status to the lead, the counters and the heartbeat', () => {
@@ -309,16 +384,18 @@ test('Should map a session entry to the ten fields the hooks and the game read',
     state: 'working',
     tool: 'Bash',
     since: 900,
-    lastStepAt: 950,
     pendingSteps: 2,
     message: 'needs permission',
   })
+  expect(
+    entry.lastStepAt,
+    "the step clock is the pool's, not the session's",
+  ).toBeUndefined()
 })
 
-test('Should leave a missing step clock missing rather than calling it zero', () => {
+test('Should leave a missing clock missing rather than calling it zero', () => {
   const entry = transformResponseActivity({ session: 'abc', at: 1000 })
 
-  expect(entry.lastStepAt).toBeUndefined()
   expect(entry.since).toBeUndefined()
   expect(entry.pendingSteps).toBeUndefined()
   expect(transformResponseActivity(null)).toBeNull()
@@ -333,7 +410,6 @@ test('Should write a session entry with the same fields it is read with', () => 
     state: 'idle',
     tool: null,
     since: 1000,
-    lastStepAt: 1000,
     pendingSteps: 0,
     hookEventName: 'Stop',
   })
@@ -341,7 +417,6 @@ test('Should write a session entry with the same fields it is read with', () => 
   expect(Object.keys(written).sort()).toEqual([
     'at',
     'cwd',
-    'lastStepAt',
     'message',
     'pendingSteps',
     'session',
@@ -423,9 +498,12 @@ test('Should map an encounter to the fields the queue file carries, and call one
     level: 4,
     seed: 777,
     shiny: true,
-    session: 'abc',
     at: '2026-01-01T00:00:00.000Z',
   })
+  expect(
+    entry.session,
+    'the grass is one route, not a per-session feed',
+  ).toBeUndefined()
   expect(transformResponseEncounter(null)).toBeNull()
 })
 
@@ -445,7 +523,6 @@ test('Should map a trainer encounter to its roster and drop the wild fields', ()
       ],
     },
     seed: 777,
-    session: 'abc',
     at: '2026-01-01T00:00:00.000Z',
   })
 
@@ -462,7 +539,6 @@ test('Should map a trainer encounter to its roster and drop the wild fields', ()
       ],
     },
     seed: 777,
-    session: 'abc',
     at: '2026-01-01T00:00:00.000Z',
   })
 })
@@ -509,7 +585,6 @@ test('Should write an encounter with the same fields and nothing more', () => {
     'level',
     'name',
     'seed',
-    'session',
     'shiny',
     'species',
     'v',
@@ -531,7 +606,6 @@ test('Should write an encounter with the same fields and nothing more', () => {
     'at',
     'kind',
     'seed',
-    'session',
     'trainer',
     'v',
   ])

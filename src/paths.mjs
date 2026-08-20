@@ -29,6 +29,14 @@ export const STATUS_FILE = join(HOME, 'status.json')
 
 export const WORKED_FILE = join(HOME, 'worked.json')
 
+export const STEPS_FILE = join(HOME, 'steps.json')
+
+export const STEPS_LOCK_FILE = join(HOME, 'steps.lock')
+
+export const INSTANCE_FILE = join(HOME, 'instance.json')
+
+export const INSTANCE_LOCK_FILE = join(HOME, 'instance.lock')
+
 export const CARD_FILE = join(HOME, 'card.png')
 
 export const TRADE_FILE = join(HOME, 'trade.txt')

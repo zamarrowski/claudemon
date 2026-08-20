@@ -1,6 +1,8 @@
-import { mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs'
+import { readFileSync } from 'node:fs'
+import { writeFileAtomic } from './atomicWrite.mjs'
 import { HEARTBEAT_STALE_MS } from './constants.mjs'
-import { HOME, STATUS_FILE } from './paths.mjs'
+import { logError } from './log.mjs'
+import { STATUS_FILE } from './paths.mjs'
 import {
   transformRequestWriteStatus,
   transformResponseStatus,
@@ -18,22 +20,21 @@ export const readStatus = () => transformResponseStatus(readStatusFile())
 
 export const writeStatus = ({ lead, balls, money, caught }) => {
   try {
-    mkdirSync(HOME, { recursive: true })
-
-    const payload = JSON.stringify(
-      transformRequestWriteStatus({
-        lead,
-        balls,
-        money,
-        caught,
-        heartbeat: Date.now(),
-      }),
+    writeFileAtomic(
+      STATUS_FILE,
+      JSON.stringify(
+        transformRequestWriteStatus({
+          lead,
+          balls,
+          money,
+          caught,
+          heartbeat: Date.now(),
+        }),
+      ),
     )
-    const tmp = `${STATUS_FILE}.${process.pid}.tmp`
-
-    writeFileSync(tmp, payload)
-    renameSync(tmp, STATUS_FILE)
-  } catch {}
+  } catch (error) {
+    logError('status', error)
+  }
 }
 
 export const companionIsLive = (status) => {

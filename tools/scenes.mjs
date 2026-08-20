@@ -199,7 +199,7 @@ export const SCENES = {
       state: 'working',
       tool: 'Bash',
       since: Date.now() - 74_000,
-      sessions: 1,
+      counts: { working: 1, waiting: 0, idle: 0 },
     }
     app.scene.step = Number(process.env.CLAUDEMON_WALK_STEP ?? 14)
 
@@ -212,7 +212,7 @@ export const SCENES = {
       state: 'waiting',
       tool: 'Bash',
       since: Date.now() - 9_000,
-      sessions: 1,
+      counts: { working: 2, waiting: 1, idle: 0 },
     }
 
     return app
@@ -224,7 +224,7 @@ export const SCENES = {
       state: 'working',
       tool: 'Edit',
       since: Date.now() - 213_000,
-      sessions: 2,
+      counts: { working: 2, waiting: 0, idle: 1 },
     }
     app.encounter = {
       species: PREVIEW_WILD.species,
@@ -244,7 +244,7 @@ export const SCENES = {
       state: 'working',
       tool: 'Edit',
       since: Date.now() - 213_000,
-      sessions: 2,
+      counts: { working: 2, waiting: 0, idle: 1 },
     }
     app.encounter = {
       kind: 'trainer',
@@ -542,7 +542,7 @@ export const SCENES = {
       state: 'idle',
       tool: null,
       since: Date.now() - 40_000,
-      sessions: 1,
+      counts: { working: 0, waiting: 0, idle: 1 },
     }
     app.updateNotice = { kind: 'available', version: '0.6.0' }
 

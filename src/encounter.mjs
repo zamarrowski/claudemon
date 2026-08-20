@@ -60,12 +60,11 @@ export const stepsFromPrompt = (promptLength, config) => {
 export const stepsWhileWorking = (elapsedMs, config) => {
   const stepMs = (config.workStepSeconds ?? 0) * 1000
 
-  if (stepMs <= 0 || !(elapsedMs > 0)) return { steps: 0, taken: 0 }
+  if (stepMs <= 0 || !(elapsedMs > 0)) return { steps: 0, leftoverMs: 0 }
 
-  const walked = Math.floor(elapsedMs / stepMs)
-  const steps = Math.min(config.maxSteps, walked)
+  const steps = Math.floor(elapsedMs / stepMs)
 
-  return { steps, taken: walked > steps ? elapsedMs : steps * stepMs }
+  return { steps, leftoverMs: elapsedMs - steps * stepMs }
 }
 
 const rollWild = (rng, leadLevel, species) => {

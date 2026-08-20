@@ -10,17 +10,19 @@ const sandbox = mkdtempSync(join(tmpdir(), 'claudemon-activity-'))
 
 process.env.CLAUDEMON_HOME = sandbox
 
-const { STALE_MS } = await import('../src/constants.mjs')
+const { STALE_MS, WORKING_STALE_MS } = await import('../src/constants.mjs')
 const {
   beginTurn,
   endSession,
   endTurn,
+  isWorking,
   noteTool,
   noteWaiting,
   pruneSessions,
   readActivity,
   readSessions,
   summariseActivity,
+  workingInterval,
   writeActivity,
 } = await import('../src/activity.mjs')
 const { stripAnsi } = await import('../src/ui/text.mjs')
@@ -82,24 +84,41 @@ const rewindSession = (home, id, ms) => {
     join(home, 'sessions', `${id}.json`),
     JSON.stringify({
       ...session,
+      at: session.at - ms,
       since: session.since - ms,
-      lastStepAt: session.lastStepAt - ms,
     }),
   )
 }
 
-const rewindLastEvent = (home, id, ms) => {
-  const session = sessionIn(home, id)
+const rewindLedger = (home, name, ms) => {
+  const path = join(home, name)
 
-  writeFileSync(
-    join(home, 'sessions', `${id}.json`),
-    JSON.stringify({ ...session, at: session.at - ms }),
-  )
+  try {
+    const ledger = JSON.parse(readFileSync(path, 'utf8'))
+
+    writeFileSync(
+      path,
+      JSON.stringify({ ...ledger, creditedTo: ledger.creditedTo - ms }),
+    )
+  } catch {}
+}
+
+const rewindSharedClocks = (home, ms) => {
+  rewindLedger(home, 'steps.json', ms)
+  rewindLedger(home, 'worked.json', ms)
 }
 
 const workedIn = (home) => {
   try {
     return JSON.parse(readFileSync(join(home, 'worked.json'), 'utf8'))
+  } catch {
+    return null
+  }
+}
+
+const stepsIn = (home) => {
+  try {
+    return JSON.parse(readFileSync(join(home, 'steps.json'), 'utf8'))
   } catch {
     return null
   }
@@ -154,7 +173,10 @@ test('Should take the walk a prompt bought once Claude gets going', () => {
   ).toHaveLength(1)
   expect(queued[0].name, 'and it is a real one').toBeTruthy()
   expect(queued[0].level).toBeGreaterThanOrEqual(2)
-  expect(queued[0].session).toBe('aaa1')
+  expect(
+    queued[0].session,
+    'the grass is one route, not a per-session feed',
+  ).toBeUndefined()
   expect(Date.parse(queued[0].at), 'stamped, so it can time out').not.toBeNaN()
   expect(
     sessionIn(home, 'aaa1').pendingSteps,
@@ -187,7 +209,6 @@ test('Should put a whole trainer in the grass when the walk turns one up', () =>
   expect(queued.trainer.name).toBeTruthy()
   expect(queued.trainer.team.length).toBeGreaterThanOrEqual(1)
   expect(queued.trainer.team[0].level).toBeGreaterThanOrEqual(2)
-  expect(queued.session).toBe('aaa9')
   expect(Date.parse(queued.at), 'stamped, so it can time out').not.toBeNaN()
 
   const line = runStatusLine(home)
@@ -508,6 +529,84 @@ test('Should not bank a queue of battles for later over a long turn', () => {
   ).toHaveLength(1)
 })
 
+test('Should bank the walk it cannot spend while a Pokemon is already in the grass', () => {
+  const home = freshHome()
+  const toolCall = {
+    session_id: 'pool1',
+    hook_event_name: 'PreToolUse',
+    tool_name: 'Bash',
+  }
+
+  writeConfig(home, {
+    encounterChance: 1,
+    trainerChance: 0,
+    workStepSeconds: 20,
+    maxSteps: 1,
+  })
+  runHook(home, 'on-activity.mjs', toolCall)
+  rewindSession(home, 'pool1', 60_000)
+  runHook(home, 'on-activity.mjs', toolCall)
+
+  expect(queueIn(home), 'one step spent, one Pokemon').toHaveLength(1)
+  expect(stepsIn(home).steps, 'the other two are banked').toBe(2)
+
+  rewindSession(home, 'pool1', 60_000)
+  rewindSharedClocks(home, 60_000)
+  runHook(home, 'on-activity.mjs', toolCall)
+
+  expect(
+    stepsIn(home).steps,
+    'a busy queue banks the walk instead of burning it',
+  ).toBe(5)
+
+  writeFileSync(join(home, 'queue.jsonl'), '')
+  runHook(home, 'on-activity.mjs', toolCall)
+
+  expect(
+    queueIn(home),
+    'and the banked steps turn up a Pokemon with no new work at all',
+  ).toHaveLength(1)
+  expect(stepsIn(home).steps).toBe(4)
+})
+
+test('Should walk the same minute once however many Claudes worked through it', () => {
+  const home = freshHome()
+  const sessions = ['pool2', 'pool3', 'pool4']
+
+  writeConfig(home, {
+    encounterChance: 1,
+    trainerChance: 0,
+    workStepSeconds: 20,
+    maxSteps: 1,
+  })
+
+  for (const session of sessions)
+    runHook(home, 'on-activity.mjs', {
+      session_id: session,
+      hook_event_name: 'PreToolUse',
+      tool_name: 'Bash',
+    })
+
+  for (const session of sessions) rewindSession(home, session, 60_000)
+
+  for (const session of sessions)
+    runHook(home, 'on-activity.mjs', {
+      session_id: session,
+      hook_event_name: 'Stop',
+    })
+
+  expect(queueIn(home), 'one trainer, one route').toHaveLength(1)
+  expect(
+    stepsIn(home).steps,
+    'three terminals through the same minute walk it once: three steps, one spent',
+  ).toBe(2)
+  expect(
+    workedIn(home).totalMs,
+    'and one minute lands on the trainer card, not three',
+  ).toBeLessThan(65_000)
+  expect(workedIn(home).totalMs).toBeGreaterThan(59_000)
+})
+
 test('Should not cash in the time spent stopped on the next tool call', () => {
   const home = freshHome()
 
@@ -555,7 +654,7 @@ test('Should bank the time Claude spent working and none of the time it spent wa
 
   expect(workedIn(home), 'no time has passed yet').toBeNull()
 
-  rewindLastEvent(home, 'www', 60_000)
+  rewindSession(home, 'www', 60_000)
   runHook(home, 'on-activity.mjs', {
     session_id: 'www',
     hook_event_name: 'PreToolUse',
@@ -574,7 +673,7 @@ test('Should bank the time Claude spent working and none of the time it spent wa
     hook_event_name: 'Notification',
     message: 'permission?',
   })
-  rewindLastEvent(home, 'www', 600_000)
+  rewindSession(home, 'www', 600_000)
   runHook(home, 'on-activity.mjs', {
     session_id: 'www',
     hook_event_name: 'Stop',
@@ -586,7 +685,7 @@ test('Should bank the time Claude spent working and none of the time it spent wa
   ).toBeLessThan(65_000)
 })
 
-test('Should forget a stretch longer than a session stays live rather than bank a night of sleep', () => {
+test('Should forget a stretch longer than a working session stays live rather than bank a night of sleep', () => {
   const home = freshHome()
 
   writeConfig(home, { encounterChance: 0 })
@@ -595,7 +694,7 @@ test('Should forget a stretch longer than a session stays live rather than bank 
     hook_event_name: 'PreToolUse',
     tool_name: 'Bash',
   })
-  rewindLastEvent(home, 'zzz', STALE_MS + 60_000)
+  rewindSession(home, 'zzz', WORKING_STALE_MS + 60_000)
   runHook(home, 'on-activity.mjs', {
     session_id: 'zzz',
     hook_event_name: 'Stop',
@@ -657,7 +756,7 @@ test('Should call it unknown, not idle, when nothing is reporting or everything 
     state: 'unknown',
     tool: null,
     since: null,
-    sessions: 0,
+    counts: { working: 0, waiting: 0, idle: 0 },
   })
   expect(
     summariseActivity([silent], now).state,
@@ -707,7 +806,60 @@ test('Should describe the session that is actually moving', () => {
   const summary = summariseActivity([stale, fresh], now)
 
   expect(summary.tool).toBe('Bash')
-  expect(summary.sessions).toBe(2)
+  expect(summary.counts).toEqual({ working: 2, waiting: 0, idle: 0 })
+})
+
+test('Should read one Claude needing you as the state and still count the ones working', () => {
+  const now = Date.now()
+  const waiting = { session: 'a', state: 'waiting', at: now - 100, since: now }
+  const working = [
+    { session: 'b', state: 'working', at: now - 200, since: now, tool: 'Bash' },
+    { session: 'c', state: 'working', at: now - 300, since: now, tool: 'Edit' },
+  ]
+
+  const summary = summariseActivity([waiting, ...working], now)
+
+  expect(summary.state, 'the row leads with what needs you').toBe('waiting')
+  expect(summary.counts).toEqual({ working: 2, waiting: 1, idle: 0 })
+  expect(
+    isWorking(summary),
+    'but the game knows two Claudes are still grinding',
+  ).toBe(true)
+})
+
+test('Should stop counting a session as working once it has gone quiet for too long', () => {
+  const now = Date.now()
+  const ghost = {
+    session: 'a',
+    state: 'working',
+    at: now - WORKING_STALE_MS - 1,
+    since: now - WORKING_STALE_MS - 1,
+    tool: 'Bash',
+  }
+
+  const summary = summariseActivity([ghost], now)
+
+  expect(summary.state, 'a session nobody has heard from is not working').toBe(
+    'idle',
+  )
+  expect(summary.counts).toEqual({ working: 0, waiting: 0, idle: 1 })
+  expect(isWorking(summary)).toBe(false)
+})
+
+test('Should hand the hooks the stretch a working session just put in, and nothing else', () => {
+  const now = Date.now()
+
+  expect(workingInterval({ state: 'working', at: now - 4000 }, now)).toEqual({
+    from: now - 4000,
+    to: now,
+  })
+  expect(workingInterval({ state: 'idle', at: now - 4000 }, now)).toBeNull()
+  expect(workingInterval({ state: 'waiting', at: now - 4000 }, now)).toBeNull()
+  expect(workingInterval(null, now)).toBeNull()
+  expect(
+    workingInterval({ state: 'working', at: now - WORKING_STALE_MS }, now),
+    'a stretch that long is a session nobody heard die',
+  ).toBeNull()
 })
 
 test('Should keep the clock running across a turn and reset it between turns', () => {
@@ -774,7 +926,12 @@ test('Should read sessions back freshest first and prune the ancient ones', () =
 
 test('Should say nothing in the activity row when nothing is reporting', () => {
   expect(
-    activityRow({ state: 'unknown', tool: null, since: null, sessions: 0 }),
+    activityRow({
+      state: 'unknown',
+      tool: null,
+      since: null,
+      counts: { working: 0, waiting: 0, idle: 0 },
+    }),
   ).toBe('')
   expect(activityRow(null)).toBe('')
 })
@@ -782,7 +939,12 @@ test('Should say nothing in the activity row when nothing is reporting', () => {
 test('Should name the tool in the activity row and how long Claude has been at it', () => {
   const now = Date.now()
   const row = activityRow(
-    { state: 'working', tool: 'Bash', since: now - 74_000, sessions: 1 },
+    {
+      state: 'working',
+      tool: 'Bash',
+      since: now - 74_000,
+      counts: { working: 1, waiting: 0, idle: 0 },
+    },
     now,
   )
 
@@ -794,7 +956,12 @@ test('Should name the tool in the activity row and how long Claude has been at i
 test('Should shout in the activity row when Claude is blocked on you', () => {
   const now = Date.now()
   const row = activityRow(
-    { state: 'waiting', tool: null, since: now, sessions: 1 },
+    {
+      state: 'waiting',
+      tool: null,
+      since: now,
+      counts: { working: 0, waiting: 1, idle: 0 },
+    },
     now,
   )
 
@@ -804,21 +971,54 @@ test('Should shout in the activity row when Claude is blocked on you', () => {
 test('Should call the activity row idle once Claude has stopped', () => {
   const now = Date.now()
   const row = activityRow(
-    { state: 'idle', tool: null, since: now, sessions: 1 },
+    {
+      state: 'idle',
+      tool: null,
+      since: now,
+      counts: { working: 0, waiting: 0, idle: 1 },
+    },
     now,
   )
 
   expect(row).toMatch(/idle/)
 })
 
-test('Should count a second busy tab rather than hide it', () => {
+test('Should break the row down by state rather than hide the other tabs behind a count', () => {
   const now = Date.now()
-  const row = activityRow(
-    { state: 'working', tool: 'Edit', since: now, sessions: 3 },
-    now,
+  const row = stripAnsi(
+    activityRow(
+      {
+        state: 'working',
+        tool: 'Edit',
+        since: now,
+        counts: { working: 3, waiting: 0, idle: 0 },
+      },
+      now,
+    ),
   )
 
-  expect(row).toMatch(/\+2/)
+  expect(row, 'three tabs grinding, said once').toMatch(
+    /Claude is working \(3\)/,
+  )
+
+  const mixed = stripAnsi(
+    activityRow(
+      {
+        state: 'waiting',
+        tool: null,
+        since: now,
+        counts: { working: 2, waiting: 1, idle: 1 },
+      },
+      now,
+    ),
+  )
+
+  expect(mixed).toMatch(/Claude needs you/)
+  expect(mixed, 'and what the others are up to').toMatch(/working \(2\)/)
+  expect(mixed).toMatch(/idle \(1\)/)
+  expect(mixed, 'the state leading the row is not repeated').not.toMatch(
+    /needs you \(1\)/,
+  )
 })
 
 const cleanUpSandbox = () => rmSync(sandbox, { recursive: true, force: true })

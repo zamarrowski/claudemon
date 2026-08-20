@@ -1,5 +1,5 @@
 import { isWorking } from '../../activity.mjs'
-import { TRAINER_MESSAGES } from '../../constants.mjs'
+import { ACTIVITY_STATES, TRAINER_MESSAGES } from '../../constants.mjs'
 import { encounterSpecies } from '../../encounter.mjs'
 import { monSpriteFile, trainerSpriteFile } from '../../paths.mjs'
 import { displayName, genderOf, isFainted, levelOf } from '../../pokemon.mjs'
@@ -31,6 +31,7 @@ import {
   wrap,
 } from '../widgets.mjs'
 import {
+  ACTIVITY_COUNT_MESSAGES,
   ACTIVITY_MESSAGES,
   APP_TITLE,
   BASE_MENU,
@@ -76,27 +77,65 @@ export const countdownRow = (encounter, now = Date.now()) => {
   return dim(`${ENCOUNTER_MESSAGES.slipsBackIn} ${left}s`)
 }
 
+const ACTIVITY_MARKS = {
+  working: brightGreen('●'),
+  waiting: brightYellow('◆'),
+  idle: dim('○'),
+}
+
+const ACTIVITY_STYLES = {
+  working: (text) => text,
+  waiting: bold,
+  idle: dim,
+}
+
+const activityAge = (activity, now) => {
+  if (typeof activity.since !== 'number') return ''
+
+  return ` ${dim('·')} ${dim(elapsed(now - activity.since))}`
+}
+
+const activityTool = (activity) => {
+  if (activity.state !== 'working' || !activity.tool) return ''
+
+  return ` ${dim('·')} ${activity.tool}`
+}
+
+const countTag = (count) => {
+  if (count < 2) return ''
+
+  return dim(` (${count})`)
+}
+
+const leadSegment = (activity) => {
+  const label = ACTIVITY_STYLES[activity.state](
+    ACTIVITY_MESSAGES[activity.state],
+  )
+
+  return `${ACTIVITY_MARKS[activity.state]} ${label}${countTag(activity.counts[activity.state])}`
+}
+
+const otherSegments = (activity) => {
+  const segments = []
+
+  for (const state of ACTIVITY_STATES) {
+    if (state === activity.state) continue
+    if (activity.counts[state] === 0) continue
+
+    segments.push(
+      `${ACTIVITY_MARKS[state]} ${dim(`${ACTIVITY_COUNT_MESSAGES[state]} (${activity.counts[state]})`)}`,
+    )
+  }
+
+  return segments
+}
+
 export const activityRow = (activity, now = Date.now()) => {
   if (!activity || activity.state === 'unknown') return ''
 
-  const age =
-    typeof activity.since === 'number'
-      ? ` ${dim('·')} ${dim(elapsed(now - activity.since))}`
-      : ''
-  const others =
-    activity.sessions > 1 ? dim(` (+${activity.sessions - 1})`) : ''
+  const lead = `${leadSegment(activity)}${activityTool(activity)}${activityAge(activity, now)}`
 
-  if (activity.state === 'waiting') {
-    return `${brightYellow('◆')} ${bold(ACTIVITY_MESSAGES.waiting)}${others}${age}`
-  }
-
-  if (activity.state === 'working') {
-    const tool = activity.tool ? ` ${dim('·')} ${activity.tool}` : ''
-
-    return `${brightGreen('●')} ${ACTIVITY_MESSAGES.working}${others}${tool}${age}`
-  }
-
-  return `${dim('○')} ${dim(ACTIVITY_MESSAGES.idle)}${others}${age}`
+  return [lead, ...otherSegments(activity)].join(` ${dim('·')} `)
 }
 
 export const restRow = (ctx) => {

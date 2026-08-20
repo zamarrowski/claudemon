@@ -6,86 +6,80 @@ import {
   noteWaiting,
   pruneSessions,
   readActivity,
+  workingInterval,
 } from '../src/activity.mjs'
 import { encounterTtlMs, loadConfig } from '../src/config.mjs'
-import {
-  loadSpeciesTable,
-  rollEncounters,
-  stepsWhileWorking,
-} from '../src/encounter.mjs'
+import { loadSpeciesTable, rollEncounters } from '../src/encounter.mjs'
 import { logError } from '../src/log.mjs'
 import { offerEncounter, readEncounter } from '../src/queue.mjs'
 import { makeRng, randomSeed } from '../src/rng.mjs'
 import { readStatus } from '../src/status.mjs'
-import { accrueWorked, workedSince } from '../src/worked.mjs'
+import { drawSteps, earnSteps } from '../src/steps.mjs'
+import { accrueWorked } from '../src/worked.mjs'
 import { DEFAULT_LEAD_LEVEL } from './constants.mjs'
 import { readStdin } from './stdin.mjs'
 import { transformResponseHookEvent } from './transformers.mjs'
 
-const stepClockOf = (previous, now) => {
-  return previous.lastStepAt ?? previous.since ?? now
-}
-
 const pendingStepsOf = (previous) => {
-  if (!Number.isInteger(previous.pendingSteps)) return 0
+  if (!Number.isInteger(previous?.pendingSteps)) return 0
 
   return Math.max(0, previous.pendingSteps)
 }
 
-const walkWhileWorking = (sessionId, now) => {
-  const previous = readActivity(sessionId)
+const leadLevelOf = (status) => {
+  const level = status?.lead?.level
 
-  if (previous?.state !== 'working') return
+  if (typeof level !== 'number') return null
 
-  const config = loadConfig()
-  const ttlMs = encounterTtlMs(config)
-  const stepClockAt = stepClockOf(previous, now)
-  const { steps, taken } = stepsWhileWorking(now - stepClockAt, config)
-  const pending = pendingStepsOf(previous)
+  return level
+}
 
-  if (steps === 0 && pending === 0) return
+const rollFromPool = (config, ttlMs) => {
+  if (readEncounter(ttlMs)) return
 
-  const walked = {
-    lastStepAt: stepClockAt + taken,
-    pendingSteps: 0,
-  }
+  const steps = drawSteps(config.maxSteps)
 
-  if (readEncounter(ttlMs)) return walked
+  if (steps === 0) return
 
-  const level = readStatus()?.lead?.level
-  const leadLevel = typeof level === 'number' ? level : null
-
-  const encounters = rollEncounters({
-    steps: Math.min(config.maxSteps, steps + pending),
+  const leadLevel = leadLevelOf(readStatus())
+  const [encounter] = rollEncounters({
+    steps,
     leadLevel,
     rng: makeRng(randomSeed()),
     config,
     species: loadSpeciesTable(leadLevel ?? DEFAULT_LEAD_LEVEL),
   })
 
-  const [encounter] = encounters
+  if (!encounter) return
 
-  if (encounter)
-    offerEncounter(
-      {
-        v: encounter.v,
-        kind: encounter.kind,
-        species: encounter.species,
-        name: encounter.name,
-        level: encounter.level,
-        trainer: encounter.trainer,
-        seed: encounter.seed,
-        shiny: encounter.shiny,
-        session: sessionId,
-      },
-      ttlMs,
-    )
-
-  return walked
+  offerEncounter(
+    {
+      v: encounter.v,
+      kind: encounter.kind,
+      species: encounter.species,
+      name: encounter.name,
+      level: encounter.level,
+      trainer: encounter.trainer,
+      seed: encounter.seed,
+      shiny: encounter.shiny,
+    },
+    ttlMs,
+  )
 }
 
-const accrueWorkedTime = (sessionId, now) => {
-  accrueWorked(workedSince(readActivity(sessionId), now), now)
+const walkWhileWorking = (previous, interval) => {
+  const pending = pendingStepsOf(previous)
+
+  if (!interval && pending === 0) return
+
+  const config = loadConfig()
+
+  if (!earnSteps({ interval, pending, config }))
+    return { pendingSteps: pending }
+
+  rollFromPool(config, encounterTtlMs(config))
+
+  return { pendingSteps: 0 }
 }
 
 const main = async () => {
@@ -101,12 +95,14 @@ const main = async () => {
   const cwd = payload.cwd ?? null
   const event = payload.hook_event_name
   const now = Date.now()
+  const previous = readActivity(session)
+  const interval = workingInterval(previous, now)
 
-  accrueWorkedTime(session, now)
+  accrueWorked(interval)
 
   switch (event) {
     case 'PreToolUse': {
-      const walked = walkWhileWorking(session, now)
+      const walked = walkWhileWorking(previous, interval)
 
       noteTool(session, cwd, payload.tool_name, walked)
       break
@@ -117,7 +113,7 @@ const main = async () => {
       break
 
     case 'Stop': {
-      const walked = walkWhileWorking(session, now)
+      const walked = walkWhileWorking(previous, interval)
 
       endTurn(session, cwd, walked)
       break
@@ -129,6 +125,7 @@ const main = async () => {
       break
 
     case 'SessionEnd':
+      walkWhileWorking(previous, interval)
       endSession(session)
       break
 

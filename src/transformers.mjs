@@ -129,6 +129,7 @@ export const transformRequestWriteStatus = (status) => mapStatus(status)
 const mapWorked = (worked) => {
   return {
     totalMs: worked.totalMs ?? 0,
+    creditedTo: worked.creditedTo ?? 0,
     updatedAt: worked.updatedAt ?? null,
   }
 }
@@ -141,6 +142,40 @@ export const transformResponseWorked = (worked) => {
 
 export const transformRequestWriteWorked = (worked) => mapWorked(worked)
 
+const mapSteps = (pool) => {
+  return {
+    v: pool.v,
+    steps: pool.steps ?? 0,
+    carriedMs: pool.carriedMs ?? 0,
+    creditedTo: pool.creditedTo ?? 0,
+  }
+}
+
+export const transformResponseSteps = (pool) => {
+  if (!pool) return null
+
+  return mapSteps(pool)
+}
+
+export const transformRequestWriteSteps = (pool) => mapSteps(pool)
+
+const mapInstance = (entry) => {
+  return {
+    v: entry.v,
+    id: entry.id,
+    pid: entry.pid,
+    at: entry.at,
+  }
+}
+
+export const transformResponseInstance = (entry) => {
+  if (!entry) return null
+
+  return mapInstance(entry)
+}
+
+export const transformRequestWriteInstance = (entry) => mapInstance(entry)
+
 const mapActivity = (entry) => {
   return {
     v: entry.v,
@@ -150,7 +185,6 @@ const mapActivity = (entry) => {
     state: entry.state,
     tool: entry.tool,
     since: entry.since,
-    lastStepAt: entry.lastStepAt,
     pendingSteps: entry.pendingSteps,
     message: entry.message,
   }
@@ -225,7 +259,6 @@ const mapTrainerEncounter = (entry) => {
     kind: 'trainer',
     trainer: mapTrainer(entry.trainer),
     seed: entry.seed,
-    session: entry.session,
     at: entry.at,
   }
 }
@@ -239,7 +272,6 @@ const mapWildEncounter = (entry) => {
     level: entry.level,
     seed: entry.seed,
     shiny: entry.shiny ?? false,
-    session: entry.session,
     at: entry.at,
   }
 }

@@ -53,6 +53,12 @@ export const ACTIVITY_MESSAGES = {
   idle: 'Claude is idle',
 }
 
+export const ACTIVITY_COUNT_MESSAGES = {
+  waiting: 'needs you',
+  working: 'working',
+  idle: 'idle',
+}
+
 export const REST_MESSAGES = {
   wipedOut: 'Your team is down — HEAL comes back when Claude stops working.',
   needsHealing: 'HEAL is a rest — it comes back when Claude stops working.',
