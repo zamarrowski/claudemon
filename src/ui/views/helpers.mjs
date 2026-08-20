@@ -4,16 +4,16 @@ import { displayName, genderOf, isFainted, levelOf } from '../../pokemon.mjs'
 import { hasBadge } from '../../state.mjs'
 import { brightGreen, brightYellow, dim, gray } from '../ansi.mjs'
 import { monDetail } from '../detail.mjs'
-import { fitCanvasCols, loadSprite } from '../sprite.mjs'
+import { fitSpriteInBox } from '../sprite.mjs'
 import { evolutionTag, genderTag, padRight, shinyTag } from '../widgets.mjs'
 import {
   BADGE_MARKS,
   COLUMN_DIVIDER,
+  COLUMN_PREFIX,
   DEX_MARKS,
   DEX_SORT,
   EVOLUTION_WORDING,
   MON_NAME_WIDTH,
-  MON_SPRITE_RESERVED_ROWS,
   OPTIONS_PREVIEW_SPECIES,
   PARTY_SORT,
   UPDATE_FOOTERS,
@@ -67,12 +67,19 @@ export const pushNote = (lines, note) => {
   return lines
 }
 
-export const monColumn = (mon, size, scale) => {
-  const sprite = loadSprite(monSpriteFile('front', mon.species, mon.shiny), {
-    cols: fitCanvasCols(size, MON_SPRITE_RESERVED_ROWS, scale),
-  })
+export const detailBox = ({ cols }, listWidth, rows) => {
+  return { cols: Math.max(1, cols - listWidth - COLUMN_PREFIX), rows }
+}
 
-  return [...monDetail(mon), '', ...(sprite ? sprite.rows : [])]
+export const monColumn = (mon, box, scale) => {
+  const detail = monDetail(mon)
+  const sprite = fitSpriteInBox(
+    monSpriteFile('front', mon.species, mon.shiny),
+    { cols: box.cols, rows: Math.max(1, box.rows - detail.length - 1) },
+    scale,
+  )
+
+  return [...detail, '', ...(sprite ? sprite.rows : [])]
 }
 
 export const columnRows = (list, right, width) => {

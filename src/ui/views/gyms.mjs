@@ -5,7 +5,7 @@ import { countOfKind } from '../../shop.mjs'
 import { hasBadge } from '../../state.mjs'
 import { trainerLabel } from '../../trainer.mjs'
 import { bold, brightYellow, dim, gray } from '../ansi.mjs'
-import { fitCanvasCols, loadSprite } from '../sprite.mjs'
+import { fitSpriteInBox } from '../sprite.mjs'
 import {
   hintLine,
   menuList,
@@ -17,8 +17,6 @@ import {
 import {
   COLUMN_DIVIDER,
   GYM_CITY_WIDTH,
-  GYM_DETAIL_GAP,
-  GYM_SPRITE_RESERVED_ROWS,
   GYM_TYPE_WIDTH,
   GYMS_HINTS,
   GYMS_LIST_WIDTH,
@@ -28,6 +26,7 @@ import {
 } from './constants.mjs'
 import {
   badgeMark,
+  detailBox,
   badgeStrip,
   levelRangeLabel,
   noteRows,
@@ -66,12 +65,11 @@ const gymDetail = (ctx, gym) => {
 }
 
 export const draw = (ctx, size) => {
-  const { cols, rows } = size
+  const { rows } = size
   const lines = []
   const overlays = []
 
   const selected = GYMS[ctx.gymSelection]
-  const detailLeft = GYMS_LIST_WIDTH + GYM_DETAIL_GAP
 
   lines.push(
     ` ${brightYellow('◓')} ${bold(GYMS_TITLE)}   ${badgeStrip(ctx.save)}  ${dim(
@@ -87,15 +85,6 @@ export const draw = (ctx, size) => {
     width: GYMS_LIST_WIDTH,
   })
 
-  const sprite = loadSprite(trainerSpriteFile(selected.leader.sprite), {
-    cols: Math.min(
-      fitCanvasCols(size, GYM_SPRITE_RESERVED_ROWS, ctx.spriteScale),
-      Math.max(2, (cols - detailLeft - 4) * 2),
-    ),
-  })
-  const spriteBlock = sprite ? sprite.rows : []
-  const right = [...gymDetail(ctx, selected), '', ...spriteBlock]
-
   const ruleRows = [
     '',
     ` ${dim(GYM_MESSAGES.rules)}`,
@@ -108,6 +97,14 @@ export const draw = (ctx, size) => {
     1,
     rows - 2 - lines.length - noteHeight - ruleRows.length,
   )
+
+  const detail = gymDetail(ctx, selected)
+  const sprite = fitSpriteInBox(
+    trainerSpriteFile(selected.leader.sprite),
+    detailBox(size, GYMS_LIST_WIDTH, Math.max(1, budget - detail.length - 1)),
+    ctx.spriteScale,
+  )
+  const right = [...detail, '', ...(sprite ? sprite.rows : [])]
 
   for (const [listRow, detailRow] of zipColumns(list, right).slice(0, budget)) {
     lines.push(

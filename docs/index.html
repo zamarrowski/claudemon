@@ -48,7 +48,10 @@
     line-height: 1.65;
   }
 
-  .wrap { width: 100%; max-width: 62rem; margin: 0 auto; padding: 0 1.5rem; }
+  /* The captures are 2000px wide and every one of them is meant to land on a retina
+     display at exactly half of that. 62rem of column showed them at 944, which is a
+     pixel grid resampled by 1.06 to fit; 65.5rem less the padding is 1000 on the nose. */
+  .wrap { width: 100%; max-width: 65.5rem; margin: 0 auto; padding: 0 1.5rem; }
 
   a { color: var(--green); text-decoration: none; border-bottom: 1px solid transparent; }
   a:hover { border-bottom-color: var(--green); }
@@ -200,29 +203,25 @@
 
   figure { margin: 0 0 2rem; }
   /* Only the captures: the sprites are figures too, and a screenshot's frame around one
-     of them is a box with a Pokemon rattling about inside it. */
+     of them is a box with a Pokemon rattling about inside it.
+
+     The frame is a shadow rather than a border because box-sizing: border-box would
+     take those two pixels out of the image, and half of 2000 has to stay 1000 or the
+     sprites stop landing on whole device pixels. */
   figure.shot img {
     display: block; width: 100%; height: auto;
-    border: 1px solid var(--line); border-radius: 3px;
+    border-radius: 3px;
+    box-shadow: 0 0 0 1px var(--line);
     background: var(--bg);
   }
-  /* Not a screenshot, so no frame — but it is 1200px wide and the column is not. */
+  /* Not a screenshot, so no frame. The game draws the card at 1200x908 and the file is
+     that at 2x, so it reads at 1200 and nowhere else — wider than the column, which is
+     why it leans out of it once the window has the room to allow it. */
   #card figure img { display: block; width: 100%; height: auto; }
+  @media (min-width: 78rem) { #card figure { margin-left: -100px; margin-right: -100px; } }
 
   figcaption { margin: .625rem 0 0; font-size: .875rem; color: var(--dim); }
   figcaption b { color: var(--fg); font-weight: 700; }
-
-  .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
-
-  /* A wide terminal beside a tall one: split down the middle they end at different
-     heights and the shorter one's caption floats in a gap. 1.65 is where the two
-     aspect ratios (1.38 and 0.83) come out the same height, so the row is flush and
-     the wider shot gets the extra pixels it needs to stay readable. */
-  .pair.uneven { grid-template-columns: 1.65fr 1fr; }
-
-  /* A column of the pair is ~480px on a desktop, which is the narrowest a capture of a
-     terminal stays readable at. Below that the pair is worth less than the size. */
-  @media (max-width: 60rem) { .pair, .pair.uneven { grid-template-columns: 1fr; } }
 
   /* ---------- code ---------- */
 
@@ -375,34 +374,32 @@
     <p class="lede">The loop, in the order you meet it: you wait, something steps out of the grass, you fight it, and what you catch lands in the Pokédex and on your team.</p>
 
     <figure class="shot">
-      <img src="home.png" width="1058" height="788" alt="The home screen: an activity line reading Claude is working, Read, 3m09s, someone standing in a band of grass, and a team of five listed below">
+      <img src="home.png" width="2000" height="1160" alt="The home screen: an activity line reading Claude is working, Bash, 1m14s, someone standing in a band of grass, and a team of six listed below with their levels and health">
       <figcaption><b>Home</b> — waiting, which is most of it. The walk only moves while Claude does, so you can tell from across the desk without reading anything.</figcaption>
     </figure>
 
-    <div class="pair uneven">
-      <figure class="shot">
-        <img src="trainer.png" width="1930" height="1400" alt="The home screen with a trainer waiting in the grass: Bug Catcher Marc, drawn as a pixel sprite, over a line reading BUG CATCHER MARC wants to battle! and two Poké Balls marking a team of two" loading="lazy">
-        <figcaption><b>Trainers</b> — sometimes what steps out of the grass is a person. The balls under the sprite are how many Pokemon they are carrying, and the timer runs the same as a wild one: leave them there and they walk off.</figcaption>
-      </figure>
-      <figure class="shot">
-        <img src="trainer-battle.png" width="1182" height="1420" alt="A trainer battle: Bug Catcher Marc at the top with two Poké Ball markers, facing your Pikachu" loading="lazy">
-        <figcaption><b>Trainer battle</b> — they send out their team one after another, no running and no throwing balls at somebody else's Pokemon. Beating them pays out, and their Pokemon are worth more experience than a wild one.</figcaption>
-      </figure>
-    </div>
-
-    <div class="pair">
-      <figure class="shot">
-        <img src="battle.png" width="1196" height="1656" alt="A battle: a wild Venonat facing your Squirtle, both drawn as pixel sprites, with health bars and a FIGHT / BAG / POKÉMON / RUN menu" loading="lazy">
-        <figcaption><b>Battle</b> — critical hits, the type chart, status conditions, PP. A ◓ by the foe's name means it is already in your Pokédex.</figcaption>
-      </figure>
-      <figure class="shot">
-        <img src="pokedex.png" width="1114" height="1574" alt="The Pokédex: the list of all 151 down the left with seen and caught markers, and Charmander on the right with its base stats, catch rate and what it evolves into" loading="lazy">
-        <figcaption><b>Pokédex</b> — seen and caught are tracked apart, and the stats fill in for the ones you caught.</figcaption>
-      </figure>
-    </div>
+    <figure class="shot">
+      <img src="trainer.png" width="2000" height="2600" alt="The home screen with a trainer waiting in the grass: Bug Catcher Marc, drawn as a pixel sprite most of the height of the terminal, over a line reading BUG CATCHER MARC wants to battle! and two Poké Balls marking a team of two" loading="lazy">
+      <figcaption><b>Trainers</b> — sometimes what steps out of the grass is a person. The balls under the sprite are how many Pokemon they are carrying, and the timer runs the same as a wild one: leave them there and they walk off. A tall tab is what buys a sprite this size: the canvas costs half as many rows as columns, so height is what binds.</figcaption>
+    </figure>
 
     <figure class="shot">
-      <img src="team.png" width="1184" height="782" alt="The team screen: five Pokémon listed on the left, and Ditto on the right with its health, experience, stats and moves" loading="lazy">
+      <img src="trainer-battle.png" width="2000" height="2120" alt="A trainer battle: Bug Catcher Marc at the top with two Poké Ball markers, facing your Charizard at Lv43" loading="lazy">
+      <figcaption><b>Trainer battle</b> — they send out their team one after another, no running and no throwing balls at somebody else's Pokemon. Beating them pays out, and their Pokemon are worth more experience than a wild one.</figcaption>
+    </figure>
+
+    <figure class="shot">
+      <img src="battle.png" width="2000" height="2120" alt="A battle: a wild Vileplume at Lv42 facing your Charizard, both drawn as pixel sprites, with health bars and a FIGHT / BAG / POKÉMON / RUN menu" loading="lazy">
+      <figcaption><b>Battle</b> — critical hits, the type chart, status conditions, PP. A ◓ by the foe's name means it is already in your Pokédex.</figcaption>
+    </figure>
+
+    <figure class="shot">
+      <img src="pokedex.png" width="2000" height="1640" alt="The Pokédex: the list of all 151 down the left with seen and caught markers, 97 of them caught, and Pikachu on the right with its base stats, catch rate and the thunder stone it evolves with" loading="lazy">
+      <figcaption><b>Pokédex</b> — seen and caught are tracked apart, and the stats fill in for the ones you caught.</figcaption>
+    </figure>
+
+    <figure class="shot">
+      <img src="team.png" width="2000" height="1480" alt="The team screen: six Pokémon listed on the left, and Pidgeot on the right with its health, experience, stats and moves" loading="lazy">
       <figcaption><b>Team</b> — details, moves, experience, <code>enter</code> to change your lead, and the box behind it.</figcaption>
     </figure>
   </section>
@@ -413,19 +410,18 @@
 
     <p><strong>Nothing is written to disk while you are in there.</strong> Beat the leader and the badge is yours. Lose, give up or close the terminal and the whole run is undone — the experience, the money, the potions and the bruises, as if you had never gone in.</p>
 
-    <div class="pair">
-      <figure class="shot">
-        <img src="gyms.png" width="1204" height="1450" alt="The gym screen: the eight Kanto gyms listed down the left with their type and level range, Pewter selected, and Brock on the right under the Boulder Badge" loading="lazy">
-        <figcaption><b>The eight</b> — easiest first, with the type they run, the levels their trainers bring and the badge marked won or not. <code>enter</code> walks in.</figcaption>
-      </figure>
-      <figure class="shot">
-        <img src="gym-leader.png" width="1352" height="1522" alt="The gym screen with Cerulean selected: the Cascade Badge not yet won, Leader Misty and her Water type, two trainers before the leader at Lv16 to 21, and a count of the potions and revives in the bag" loading="lazy">
-        <figcaption><b>Before you walk in</b> — who is waiting, and what you are carrying. The potions in your bag are the potions you get: there is no shop and no healing past that door.</figcaption>
-      </figure>
-    </div>
+    <figure class="shot">
+      <img src="gyms.png" width="2000" height="1400" alt="The gym screen: the eight Kanto gyms listed down the left with their type and level range, five badges won, Pewter selected, and Brock on the right under the Boulder Badge" loading="lazy">
+      <figcaption><b>The eight</b> — easiest first, with the type they run, the levels their trainers bring and the badge marked won or not. <code>enter</code> walks in.</figcaption>
+    </figure>
 
     <figure class="shot">
-      <img src="gym-run.png" width="1094" height="649" alt="Inside the Pewter gym: a Gauntlet panel listing Camper Liam beaten, Hiker Wade next and Leader Brock still to come, the team below it, and a line reading enter, face the next one, Hiker Wade" loading="lazy">
+      <img src="gym-leader.png" width="2000" height="1720" alt="The gym screen with Saffron selected: the Marsh Badge not yet won, Leader Sabrina and her Psychic type, two trainers before the leader at Lv38 to 43, and a count of the potions and revives in the bag" loading="lazy">
+      <figcaption><b>Before you walk in</b> — who is waiting, and what you are carrying. The potions in your bag are the potions you get: there is no shop and no healing past that door.</figcaption>
+    </figure>
+
+    <figure class="shot">
+      <img src="gym-run.png" width="2000" height="1000" alt="Inside the Saffron gym: a Gauntlet panel listing Psychic Johan beaten, Channeler Tamara next and Leader Sabrina still to come, the team below it with a poisoned Gengar, and a line reading enter, face the next one, Channeler Tamara" loading="lazy">
       <figcaption><b>The run</b> — the gauntlet on the way down, your team underneath it and nothing else: <code>i</code> for the bag, <code>l</code> to change your lead, and <code>esc</code> twice to walk out on all of it.</figcaption>
     </figure>
   </section>
@@ -512,7 +508,7 @@ node tools/install.mjs</pre>
     <p class="lede">Your six, drawn at the size they deserve, over your name, the days you have been at it, the badges in the colour of the type that gave them, the achievements you have earned, and the hours Claude has spent working while you played.</p>
 
     <figure>
-      <img src="card-team.png" width="1200" height="908" alt="The trainer card: six Pokémon in two rows of three, each with its name, level and health bar, under the trainer name, the days played and the Pokédex count, with the eight badges, the fifteen achievements and the totals along the bottom. The Gyarados is red rather than blue, with a mark beside its name saying it is shiny" loading="lazy">
+      <img src="card-team.png" width="2400" height="1816" alt="The trainer card: six Pokémon in two rows of three, each with its name, level and health bar, under the trainer name, the days played and the Pokédex count, with the eight badges, the fifteen achievements and the totals along the bottom. The Gyarados is red rather than blue, with a mark beside its name saying it is shiny" loading="lazy">
       <figcaption><b>s</b>, on the TRAINER screen — it writes the card, opens it, and leaves you where you were. A shiny is drawn shiny and marked, so the one you spent four thousand encounters on is the one people see. The line along the bottom means the picture carries its own way back here.</figcaption>
     </figure>
 
@@ -539,12 +535,12 @@ node tools/install.mjs</pre>
     <p><strong>Which is what makes it a shiny hunt.</strong> An egg rolls its own shiny check at 1 in 512 rather than the 1 in 4096 the grass uses, so a hatch is the one shiny roll in the game you can work towards instead of wait for. It gets the line, the colours and the sound a shiny in the grass gets, and the Pok&eacute;dex remembers it the same way.</p>
 
     <figure class="shot">
-      <img src="daycare.png" width="1380" height="823" alt="The day care screen: an egg drawn as a pixel sprite beside the line Something is moving inside and a progress bar reading 214 of 600 steps, over a line saying The two seem to get along, with Ditto at Lv19 and a shiny Pikachu at Lv22 in the two slots" loading="lazy">
+      <img src="daycare.png" width="2000" height="1080" alt="The day care screen: an egg drawn as a pixel sprite beside the line Something is moving inside and a progress bar reading 214 of 600 steps, over a line saying The two seem to get along, with Ditto at Lv30 and a shiny Pikachu at Lv33 in the two slots" loading="lazy">
       <figcaption><b>An egg on the way</b> &mdash; Ditto in one slot and whatever you are hunting in the other. The bar is the only thing that tells you how far along it is, and it only moves while Claude does.</figcaption>
     </figure>
 
     <figure class="shot">
-      <img src="daycare-raising.png" width="1366" height="657" alt="The day care screen with no egg: Rattata at Lv15 and Magnemite at Lv16 in the two slots, under a line reading The two prefer to play with other Pokémon, and Magnemite's experience bar part of the way to the next level" loading="lazy">
+      <img src="daycare-raising.png" width="2000" height="1000" alt="The day care screen with no egg: Rattata at Lv15 and Magnemite at Lv16 in the two slots, under a line reading The two prefer to play with other Pokémon, and Magnemite's experience bar part of the way to the next level" loading="lazy">
       <figcaption><b>Or just raising them</b> &mdash; a pair that leaves no egg still gains EXP for every step. The screen says so before you spend an hour waiting for something that is not coming.</figcaption>
     </figure>
 

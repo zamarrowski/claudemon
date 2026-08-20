@@ -1,8 +1,8 @@
-import { crc32, deflateSync } from 'node:zlib'
+import { crc32, deflateSync, inflateSync } from 'node:zlib'
 import { expect, test } from 'vitest'
 
 import { PNG_SIGNATURE_BYTES } from './constants.mjs'
-import { decodePng, encodePng } from './png.mjs'
+import { decodePng, encodePng, encodeSmallestPng } from './png.mjs'
 
 const chunk = (type, data) => {
   const out = Buffer.alloc(data.length + 12)
@@ -360,4 +360,68 @@ test('Should sign every chunk it writes with a checksum the reader agrees with',
   const body = bytes.subarray(12, 16 + length)
 
   expect(bytes.readUInt32BE(16 + length)).toBe(crc32(body))
+})
+
+const idatOf = (png) => {
+  const parts = []
+
+  let at = 8
+
+  while (at < png.length) {
+    const length = png.readUInt32BE(at)
+    const type = png.toString('ascii', at + 4, at + 8)
+
+    if (type === 'IDAT') parts.push(png.subarray(at + 8, at + 8 + length))
+
+    at += length + 12
+  }
+
+  return inflateSync(Buffer.concat(parts))
+}
+
+const filtersOf = (png, width, height) => {
+  const raw = idatOf(png)
+  const stride = width * 4
+
+  return Array.from({ length: height }, (_, row) => raw[row * (stride + 1)])
+}
+
+const gradient = (width, height) => {
+  const pixels = new Uint8Array(width * height * 4)
+
+  for (let y = 0; y < height; y++)
+    for (let x = 0; x < width; x++) {
+      const at = (y * width + x) * 4
+
+      pixels[at] = x
+      pixels[at + 1] = y
+      pixels[at + 2] = (x + y) & 0xff
+      pixels[at + 3] = 255
+    }
+
+  return { width, height, pixels }
+}
+
+test('Should store the scanlines as they are, which is what keeps a card quick', () => {
+  const image = gradient(64, 32)
+  const bytes = encodePng(image)
+
+  expect(filtersOf(bytes, 64, 32)).toEqual(Array.from({ length: 32 }, () => 0))
+  expect([...decodePng(bytes).pixels]).toEqual([...image.pixels])
+})
+
+test('Should filter a gradient down to fewer bytes and still read back pixel for pixel', () => {
+  const image = gradient(64, 32)
+  const smallest = encodeSmallestPng(image)
+
+  expect(filtersOf(smallest, 64, 32).some((filter) => filter !== 0)).toBe(true)
+  expect(smallest.length).toBeLessThan(encodePng(image).length)
+  expect([...decodePng(smallest).pixels]).toEqual([...image.pixels])
+})
+
+test('Should leave flat pixel art unfiltered, where the runs compress on their own', () => {
+  const pixels = new Uint8Array(32 * 8 * 4).fill(255)
+  const bytes = encodeSmallestPng({ width: 32, height: 8, pixels })
+
+  expect(filtersOf(bytes, 32, 8)).toEqual(Array.from({ length: 8 }, () => 0))
 })

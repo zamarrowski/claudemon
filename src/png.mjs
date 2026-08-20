@@ -5,7 +5,12 @@ import {
   PNG_COLOR_TYPE_RGBA,
   PNG_CRC_POLYNOMIAL,
   PNG_CRC_SEED,
+  PNG_DEFLATE_LEVEL,
+  PNG_FILTER_AVERAGE,
   PNG_FILTER_NONE,
+  PNG_FILTER_PAETH,
+  PNG_FILTER_SUB,
+  PNG_FILTER_UP,
   PNG_SIGNATURE_BYTES,
 } from './constants.mjs'
 
@@ -238,8 +243,67 @@ const headerChunk = (width, height) => {
   return chunk('IHDR', data)
 }
 
-const filteredRows = ({ width, height, pixels }) => {
-  const stride = width * 4
+const CHANNELS = PNG_CHANNELS[PNG_COLOR_TYPE_RGBA]
+
+const FILTERS = [
+  PNG_FILTER_NONE,
+  PNG_FILTER_SUB,
+  PNG_FILTER_UP,
+  PNG_FILTER_AVERAGE,
+  PNG_FILTER_PAETH,
+]
+
+const filterByte = (filter, value, left, above, upperLeft) => {
+  if (filter === PNG_FILTER_SUB) return value - left
+  if (filter === PNG_FILTER_UP) return value - above
+  if (filter === PNG_FILTER_AVERAGE) return value - ((left + above) >> 1)
+  if (filter === PNG_FILTER_PAETH) return value - paeth(left, above, upperLeft)
+
+  return value
+}
+
+const filterInto = (out, at, filter, row, previous) => {
+  for (let index = 0; index < row.length; index++) {
+    const left = index >= CHANNELS ? row[index - CHANNELS] : 0
+    const above = previous[index]
+    const upperLeft = index >= CHANNELS ? previous[index - CHANNELS] : 0
+
+    out[at + index] =
+      filterByte(filter, row[index], left, above, upperLeft) & 0xff
+  }
+
+  return out
+}
+
+const deviation = (bytes, length) => {
+  let total = 0
+
+  for (let index = 0; index < length; index++)
+    total += bytes[index] < 128 ? bytes[index] : 256 - bytes[index]
+
+  return total
+}
+
+const bestFilter = (candidate, row, previous) => {
+  let chosen = PNG_FILTER_NONE
+  let lowest = Infinity
+
+  for (const filter of FILTERS) {
+    filterInto(candidate, 0, filter, row, previous)
+
+    const score = deviation(candidate, row.length)
+
+    if (score < lowest) {
+      lowest = score
+      chosen = filter
+    }
+  }
+
+  return chosen
+}
+
+const plainRows = ({ width, height, pixels }) => {
+  const stride = width * CHANNELS
   const raw = Buffer.alloc(height * (stride + 1))
 
   for (let y = 0; y < height; y++) {
@@ -252,11 +316,41 @@ const filteredRows = ({ width, height, pixels }) => {
   return raw
 }
 
-export const encodePng = (image) => {
+const filteredRows = (image) => {
+  const stride = image.width * CHANNELS
+  const raw = Buffer.alloc(image.height * (stride + 1))
+  const candidate = Buffer.alloc(stride)
+  let previous = Buffer.alloc(stride)
+
+  for (let y = 0; y < image.height; y++) {
+    const row = image.pixels.subarray(y * stride, (y + 1) * stride)
+    const at = y * (stride + 1)
+    const filter = bestFilter(candidate, row, previous)
+
+    raw[at] = filter
+    filterInto(raw, at + 1, filter, row, previous)
+    previous = row
+  }
+
+  return raw
+}
+
+const packed = (raw) => deflateSync(raw, { level: PNG_DEFLATE_LEVEL })
+
+const withIdat = (image, idat) => {
   return Buffer.concat([
     SIGNATURE,
     headerChunk(image.width, image.height),
-    chunk('IDAT', deflateSync(filteredRows(image))),
+    chunk('IDAT', idat),
     chunk('IEND', Buffer.alloc(0)),
   ])
+}
+
+export const encodePng = (image) => withIdat(image, packed(plainRows(image)))
+
+export const encodeSmallestPng = (image) => {
+  const plain = packed(plainRows(image))
+  const filtered = packed(filteredRows(image))
+
+  return withIdat(image, filtered.length < plain.length ? filtered : plain)
 }
