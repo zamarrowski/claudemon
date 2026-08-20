@@ -1,11 +1,11 @@
 export const APP_TITLE = 'claudemon'
 export const KANTO_TOTAL = 151
 export const COLUMN_DIVIDER = '│'
+export const COLUMN_PREFIX = 6
 export const LIST_WIDTH = 30
 export const LIST_HEIGHT_FLOOR = 6
 export const MON_NAME_WIDTH = 12
 export const MON_LEVEL_WIDTH = 9
-export const MON_SPRITE_RESERVED_ROWS = 24
 export const EMPTY_BAG_MESSAGE = 'Your bag is empty.'
 export const NO_SPRITE_MESSAGE = '(sprite unavailable)'
 
@@ -84,9 +84,7 @@ export const WALK_HINTS = {
 
 export const DEX_TITLE = 'POKÉDEX'
 export const DEX_LIST_WIDTH = 28
-export const DEX_DETAIL_GAP = 4
 export const DEX_ROWS_RESERVED = 6
-export const DEX_SPRITE_RESERVED_ROWS = 18
 export const BASE_STAT_MAX = 160
 export const DEX_PAGE_STEP = 10
 export const DEX_UNKNOWN_NAME = '-----'
@@ -252,8 +250,6 @@ export const SHOP_HINTS =
 export const GYMS_TITLE = 'GYMS'
 export const GYM_TITLE_SUFFIX = 'GYM'
 export const GYMS_LIST_WIDTH = 32
-export const GYM_DETAIL_GAP = 6
-export const GYM_SPRITE_RESERVED_ROWS = 18
 export const GYM_CITY_WIDTH = 10
 export const GYM_TYPE_WIDTH = 8
 export const GYM_ROSTER_NAME_WIDTH = 20

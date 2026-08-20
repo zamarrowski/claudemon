@@ -256,16 +256,23 @@ export const cropToContent = (image) => {
   return { width, height, pixels, canvasFraction: width / image.width }
 }
 
+export const canvasCols = ({ cols, rows }, scale = 1) => {
+  const byHeight = Math.max(MIN_CANVAS_COLS, rows * 2)
+  const byWidth = Math.max(MIN_CANVAS_COLS, cols)
+  const room = Math.min(NATIVE_CANVAS_COLS, byWidth, byHeight)
+
+  return Math.max(MIN_CANVAS_COLS, Math.round(room * scale))
+}
+
 export const fitCanvasCols = (
   { cols, rows },
   reservedRows = DEFAULT_RESERVED_ROWS,
   scale = 1,
 ) => {
-  const byHeight = Math.max(MIN_CANVAS_COLS, (rows - reservedRows) * 2)
-  const byWidth = Math.max(MIN_CANVAS_COLS, cols - CANVAS_WIDTH_SLACK)
-  const room = Math.min(NATIVE_CANVAS_COLS, byWidth, byHeight)
-
-  return Math.max(MIN_CANVAS_COLS, Math.round(room * scale))
+  return canvasCols(
+    { cols: cols - CANVAS_WIDTH_SLACK, rows: rows - reservedRows },
+    scale,
+  )
 }
 
 const renderCache = new Map()
@@ -308,6 +315,37 @@ export const loadSprite = (pngPath, { cols }) => {
   } catch {
     return null
   }
+}
+
+const shrinkToBox = (pngPath, sprite, canvas, box) => {
+  const over = Math.max(sprite.cols / box.cols, spriteHeight(sprite) / box.rows)
+
+  if (over <= 1) return sprite
+  if (canvas <= MIN_CANVAS_COLS) return sprite
+
+  const smaller = Math.max(
+    MIN_CANVAS_COLS,
+    Math.min(canvas - 1, Math.floor(canvas / over)),
+  )
+
+  return shrinkToBox(
+    pngPath,
+    loadSprite(pngPath, { cols: smaller }),
+    smaller,
+    box,
+  )
+}
+
+export const fitSpriteInBox = (pngPath, box, scale = 1) => {
+  const canvas = Math.max(
+    MIN_CANVAS_COLS,
+    Math.round(NATIVE_CANVAS_COLS * scale),
+  )
+  const sprite = loadSprite(pngPath, { cols: canvas })
+
+  if (!sprite) return null
+
+  return shrinkToBox(pngPath, sprite, canvas, box)
 }
 
 export const placeSprite = (lines, sprite, indent) => {

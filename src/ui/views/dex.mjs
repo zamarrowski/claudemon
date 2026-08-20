@@ -4,7 +4,7 @@ import { monSpriteFile } from '../../paths.mjs'
 import { speciesGender, speciesName } from '../../pokemon.mjs'
 import { timesFaced } from '../../state.mjs'
 import { bold, brightYellow, dim, gray } from '../ansi.mjs'
-import { fitCanvasCols, loadSprite } from '../sprite.mjs'
+import { fitSpriteInBox } from '../sprite.mjs'
 import {
   genderTag,
   hintLine,
@@ -19,14 +19,12 @@ import {
 import {
   BASE_STAT_MAX,
   COLUMN_DIVIDER,
-  DEX_DETAIL_GAP,
   DEX_HINTS,
   DEX_LIST_WIDTH,
   DEX_MESSAGES,
   DEX_PAGE_STEP,
   DEX_ROWS_RESERVED,
   DEX_SORT_LABELS,
-  DEX_SPRITE_RESERVED_ROWS,
   DEX_TITLE,
   DEX_UNKNOWN_NAME,
   KANTO_TOTAL,
@@ -34,10 +32,12 @@ import {
   STAT_GLYPHS,
 } from './constants.mjs'
 import {
+  detailBox,
   dexMark,
   dexSelectionAfterSort,
   evolutionWording,
   nextDexSort,
+  rowsLeftFor,
   sortedDex,
   zipColumns,
 } from './helpers.mjs'
@@ -45,7 +45,7 @@ import {
 const dexEntries = (ctx) => sortedDex(loadData().pokedex, ctx.dexSort)
 
 export const draw = (ctx, size) => {
-  const { cols, rows } = size
+  const { rows } = size
   const lines = []
   const overlays = []
 
@@ -55,7 +55,6 @@ export const draw = (ctx, size) => {
   const seen = caught || ctx.save.dex.seen.includes(selected.id)
   const shiny = ctx.save.dex.shiny.includes(selected.id)
 
-  const detailLeft = DEX_LIST_WIDTH + DEX_DETAIL_GAP
   const sortLabel = DEX_SORT_LABELS[ctx.dexSort]
 
   lines.push(
@@ -136,26 +135,34 @@ export const draw = (ctx, size) => {
     detail.push(gray(DEX_MESSAGES.noData))
   }
 
+  const footer = [hintLine(DEX_HINTS)]
+  const budget = rowsLeftFor(rows, lines, footer, [])
   const sprite = seen
-    ? loadSprite(monSpriteFile('front', selected.id, shiny), {
-        cols: Math.min(
-          fitCanvasCols(size, DEX_SPRITE_RESERVED_ROWS, ctx.spriteScale),
-          (cols - detailLeft - 4) * 2,
+    ? fitSpriteInBox(
+        monSpriteFile('front', selected.id, shiny),
+        detailBox(
+          size,
+          DEX_LIST_WIDTH,
+          Math.max(1, budget - detail.length - 1),
         ),
-      })
+        ctx.spriteScale,
+      )
     : null
 
   const spriteBlock = sprite ? sprite.rows : []
   const rightColumn = [...detail, '', ...spriteBlock]
 
-  for (const [listRow, detailRow] of zipColumns(list, rightColumn)) {
+  for (const [listRow, detailRow] of zipColumns(list, rightColumn).slice(
+    0,
+    budget,
+  )) {
     const left = padRight(listRow, DEX_LIST_WIDTH)
 
     lines.push(` ${left}  ${dim(COLUMN_DIVIDER)}  ${detailRow}`)
   }
 
   return {
-    lines: withFooter(lines, hintLine(DEX_HINTS), rows),
+    lines: withFooter(lines, footer, rows),
     overlays,
   }
 }

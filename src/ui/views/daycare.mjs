@@ -36,6 +36,7 @@ import {
 import {
   clampSelection,
   columnRows,
+  detailBox,
   monColumn,
   monRow,
   noteRows,
@@ -172,7 +173,11 @@ const drawPick = (ctx, size) => {
   const note = noteRows(ctx.daycareMessage)
   const footer = [hintLine(DAYCARE_PICK_HINTS)]
   const budget = rowsLeftFor(rows, lines, footer, note)
-  const right = monColumn(candidates[selection].mon, size, ctx.spriteScale)
+  const right = monColumn(
+    candidates[selection].mon,
+    detailBox(size, DAYCARE_LIST_WIDTH, budget),
+    ctx.spriteScale,
+  )
 
   for (const row of columnRows(list, right, DAYCARE_LIST_WIDTH).slice(
     0,

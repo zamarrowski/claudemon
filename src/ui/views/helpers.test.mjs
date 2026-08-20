@@ -15,11 +15,13 @@ import {
   clampSelection,
   columnRows,
   currentIndex,
+  detailBox,
   dexMark,
   dexSelectionAfterSort,
   evolutionWording,
-  nextDexSort,
+  monColumn,
   monRow,
+  nextDexSort,
   nextPartySort,
   noteRows,
   noteText,
@@ -325,4 +327,32 @@ test('Should append a note under a blank line, and nothing at all when there is 
     ' first',
     ' second',
   ])
+})
+
+test('Should measure the detail column as what the list and the divider leave', () => {
+  expect(detailBox({ cols: 100 }, 30, 20)).toEqual({ cols: 64, rows: 20 })
+  expect(detailBox({ cols: 40 }, 34, 8)).toEqual({ cols: 1, rows: 8 })
+})
+
+test('Should spend the rows a panel leaves on the sprite rather than on blank lines', () => {
+  const mon = createPokemon(4, 20, makeRng(7))
+  const tight = monColumn(mon, detailBox({ cols: 100 }, 30, 22), 1)
+  const roomy = monColumn(mon, detailBox({ cols: 100 }, 30, 40), 1)
+
+  expect(tight.length).toBeLessThanOrEqual(22)
+  expect(roomy.length).toBeLessThanOrEqual(40)
+  expect(roomy.length).toBeGreaterThan(tight.length)
+})
+
+test('Should keep the sprite inside the column, however narrow the panel is', () => {
+  const mon = createPokemon(130, 40, makeRng(3))
+
+  for (const listWidth of [30, 40, 50]) {
+    const box = detailBox({ cols: 100 }, listWidth, 40)
+
+    for (const row of monColumn(mon, box, 1))
+      expect(stripAnsi(row).length, `list ${listWidth}`).toBeLessThanOrEqual(
+        box.cols,
+      )
+  }
 })

@@ -1,11 +1,8 @@
 import { ITEMS } from '../../constants.mjs'
-import { monSpriteFile } from '../../paths.mjs'
 import { displayName, speciesName, stoneEvolution } from '../../pokemon.mjs'
 import { countOf, itemsInBag, usableOnParty } from '../../shop.mjs'
 import { bold, brightYellow, dim, gray } from '../ansi.mjs'
 import { EVOLVES_MARK } from '../constants.mjs'
-import { monDetail } from '../detail.mjs'
-import { fitCanvasCols, loadSprite } from '../sprite.mjs'
 import { hintLine, menuList, padRight, withFooter, wrap } from '../widgets.mjs'
 import {
   BAG_ITEM_NAME_WIDTH,
@@ -14,12 +11,13 @@ import {
   EMPTY_BAG_MESSAGE,
   LIST_HEIGHT_FLOOR,
   LIST_WIDTH,
-  MON_SPRITE_RESERVED_ROWS,
   TEAM_BAG_HINTS,
   TEAM_MESSAGES,
 } from './constants.mjs'
 import {
   clampSelection,
+  detailBox,
+  monColumn,
   noteRows,
   partyEntryAt,
   zipColumns,
@@ -74,17 +72,15 @@ export const draw = (ctx, size) => {
     width: LIST_WIDTH,
   })
 
-  const sprite = loadSprite(
-    monSpriteFile('front', selected.species, selected.shiny),
-    { cols: fitCanvasCols(size, MON_SPRITE_RESERVED_ROWS, ctx.spriteScale) },
-  )
-  const spriteBlock = sprite ? sprite.rows : []
-  const right = [...monDetail(selected), '', ...spriteBlock]
-
   const note = noteRows(bagNote(ctx, bag, index, selected))
   const noteHeight = note.length > 0 ? note.length + 1 : 0
 
   const budget = Math.max(1, rows - 2 - lines.length - noteHeight)
+  const right = monColumn(
+    selected,
+    detailBox(size, LIST_WIDTH, budget),
+    ctx.spriteScale,
+  )
 
   for (const [listRow, detailRow] of zipColumns(list, right).slice(0, budget)) {
     lines.push(

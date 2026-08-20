@@ -23,6 +23,7 @@ import {
 import {
   clampSelection,
   columnRows,
+  detailBox,
   monColumn,
   partyEntryAt,
   pushNote,
@@ -77,10 +78,14 @@ export const draw = (ctx, size) => {
     width: LIST_WIDTH,
   })
 
-  const right = monColumn(mon, size, ctx.spriteScale)
   const note = movesNote(mon)
   const footer = movesFooter(mon, ctx.moveHeld)
   const budget = rowsLeftFor(rows, lines, footer, note)
+  const right = monColumn(
+    mon,
+    detailBox(size, LIST_WIDTH, budget),
+    ctx.spriteScale,
+  )
 
   for (const row of columnRows(list, right, LIST_WIDTH).slice(0, budget))
     lines.push(row)

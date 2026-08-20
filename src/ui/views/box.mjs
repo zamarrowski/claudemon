@@ -12,6 +12,7 @@ import {
 } from './constants.mjs'
 import {
   columnRows,
+  detailBox,
   monColumn,
   monRow,
   nextPartySort,
@@ -19,6 +20,7 @@ import {
   partyEntryAt,
   partySelectionAfterSort,
   pushNote,
+  rowsLeftFor,
   sortedPartyEntries,
 } from './helpers.mjs'
 
@@ -59,18 +61,22 @@ export const draw = (ctx, size) => {
     width: LIST_WIDTH,
   })
 
-  const right = monColumn(selected, size, ctx.spriteScale)
+  const note = noteRows(ctx.boxMessage)
+  const footer = [hintLine(BOX_HINTS), hintLine(TRADE_KEY_HINTS)]
+  const budget = rowsLeftFor(rows, lines, footer, note)
+  const right = monColumn(
+    selected,
+    detailBox(size, LIST_WIDTH, budget),
+    ctx.spriteScale,
+  )
 
-  for (const row of columnRows(list, right, LIST_WIDTH)) lines.push(row)
+  for (const row of columnRows(list, right, LIST_WIDTH).slice(0, budget))
+    lines.push(row)
 
-  pushNote(lines, noteRows(ctx.boxMessage))
+  pushNote(lines, note)
 
   return {
-    lines: withFooter(
-      lines,
-      [hintLine(BOX_HINTS), hintLine(TRADE_KEY_HINTS)],
-      rows,
-    ),
+    lines: withFooter(lines, footer, rows),
     overlays,
   }
 }
