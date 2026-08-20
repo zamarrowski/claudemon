@@ -459,13 +459,31 @@ export const DEFAULT_CONFIG = {
 export const HOUR_MS = 60 * 60_000
 export const DAY_MS = 24 * 60 * 60_000
 
-export const EMPTY_WORKED = { totalMs: 0, updatedAt: null }
+export const EMPTY_WORKED = { totalMs: 0, creditedTo: 0, updatedAt: null }
 
 export const STALE_MS = 30 * 60_000
+export const WORKING_STALE_MS = 10 * 60_000
 export const PRUNE_MS = 24 * 60 * 60_000
 export const WAITING_MESSAGE_LIMIT = 120
+export const ACTIVITY_STATES = ['working', 'waiting', 'idle']
 export const ACTIVITY_PRIORITY = ['waiting', 'working', 'idle']
-export const ACTIVITY_VERSION = 1
+export const ACTIVITY_VERSION = 2
+
+export const EMPTY_STEPS = { steps: 0, carriedMs: 0, creditedTo: 0 }
+export const STEPS_VERSION = 1
+export const STEP_POOL_LIMIT = 60
+
+export const REPLACE_ATTEMPTS = 5
+export const REPLACE_BACKOFF_MS = 20
+export const REPLACE_RETRY_CODES = ['EPERM', 'EBUSY', 'EACCES']
+
+export const LOCK_ATTEMPTS = 20
+export const LOCK_BACKOFF_MS = 10
+export const LOCK_STALE_MS = 5000
+export const LOCK_BUSY_MESSAGE = 'busy lock'
+
+export const INSTANCE_VERSION = 1
+export const INSTANCE_STALE_MS = 15_000
 
 export const LEGENDARY_LEVEL_GATE = 40
 export const DEFAULT_CAPTURE_RATE = 45
@@ -1108,6 +1126,10 @@ export const POLL_MS = 2000
 export const UPDATE_POLL_MS = 60_000
 export const TICK_MS = 500
 export const FRAME_MS = 60
+export const ALREADY_OPEN_MESSAGE =
+  'claudemon is already open in another window.'
+export const ALREADY_OPEN_HINT =
+  'One window per save. If the other one crashed, try again in a few seconds.'
 export const DATASET_MISSING_MESSAGE = 'The Pokemon dataset is missing.'
 export const DATASET_MISSING_HINT =
   'Run: node tools/fetch-data.mjs  (and node tools/fetch-sprites.mjs)'

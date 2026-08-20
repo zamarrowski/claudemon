@@ -201,24 +201,24 @@ test('Should walk a prompt at least one step and never more than the cap', () =>
   expect(stepsFromPrompt(100000, CONFIG), 'the cap holds').toBe(CONFIG.maxSteps)
 })
 
-test('Should walk a step per interval while working and bank only what it used', () => {
-  expect(stepsWhileWorking(0, CONFIG)).toEqual({ steps: 0, taken: 0 })
-  expect(stepsWhileWorking(19_999, CONFIG)).toEqual({ steps: 0, taken: 0 })
+test('Should walk a step per interval while working and leave the rest on the clock', () => {
+  expect(stepsWhileWorking(0, CONFIG)).toEqual({ steps: 0, leftoverMs: 0 })
+  expect(stepsWhileWorking(19_999, CONFIG)).toEqual({
+    steps: 0,
+    leftoverMs: 19_999,
+  })
   expect(stepsWhileWorking(20_000, CONFIG)).toEqual({
     steps: 1,
-    taken: 20_000,
+    leftoverMs: 0,
   })
   expect(
     stepsWhileWorking(50_000, CONFIG),
     'the leftover ten seconds stay on the clock',
-  ).toEqual({ steps: 2, taken: 40_000 })
-})
-
-test('Should swallow the whole wait once the cap is hit, not just the part used', () => {
-  const { steps, taken } = stepsWhileWorking(200_000, CONFIG)
-
-  expect(steps).toBe(CONFIG.maxSteps)
-  expect(taken, 'no credit is carried over from a long absence').toBe(200_000)
+  ).toEqual({ steps: 2, leftoverMs: 10_000 })
+  expect(
+    stepsWhileWorking(200_000, CONFIG).steps,
+    'a long stretch walks every step of it, the pool caps the total',
+  ).toBe(10)
 })
 
 test('Should never walk a session with no step interval', () => {
@@ -229,10 +229,10 @@ test('Should never walk a session with no step interval', () => {
       maxSteps: 4,
       workStepSeconds: 0,
     }),
-  ).toEqual({ steps: 0, taken: 0 })
+  ).toEqual({ steps: 0, leftoverMs: 0 })
   expect(stepsWhileWorking(999_999, { maxSteps: 4 })).toEqual({
     steps: 0,
-    taken: 0,
+    leftoverMs: 0,
   })
 })
 

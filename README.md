@@ -16,6 +16,9 @@ One at a time, and only for half a minute: a Pokemon that appears while you are 
 wanders off if you leave it there, so a long session never leaves a queue of battles
 waiting for you.
 
+However many Claude tabs you keep open, they all walk one trainer through one patch of
+grass — [see below](#several-claude-tabs).
+
 The original 151. Fully local — no account, no backend, nothing about you leaving the
 machine.
 
@@ -291,6 +294,29 @@ a shiny in the grass gets, and the Pokédex remembers it the same way.
 
 One egg at a time, and taking a parent back does not take the egg with it.
 
+## Several Claude tabs
+
+Running Claude in more than one terminal is normal, and all of them feed the same
+world: one save, one Pokédex, one bag, and one pool of steps. The walking is wall
+clock rather than a sum — four tabs working the same minute walk it once, so opening
+terminals does not farm encounters, and the trainer keeps walking while any of them is
+working. The steps nobody could spend, because something was already in the grass,
+stay banked for the next one instead of being thrown away.
+
+The activity line leads with whatever needs you most and counts the rest:
+
+```
+◆ Claude needs you  ·  4s  ·  ● working (2)
+```
+
+HEAL stays greyed out, and a blackout stays down, while any tab is still working — one
+of them pausing on a permission prompt is not a rest. The hours on the trainer card are
+wall clock too: two Claudes working the same hour count as one hour, not two.
+
+The game itself is one window at a time. A second `claudemon` says so and stops, because
+two of them writing the whole save over each other would lose whatever the other one
+just caught. If the one holding it crashed, the door opens again a few seconds later.
+
 ## What is in it
 
 - The original 151, with real base stats, types, catch rates and Red/Blue movesets.
@@ -320,7 +346,8 @@ One egg at a time, and taking a parent back does not take the egg with it.
   never gone in.
 - A line telling you whether Claude is working, which tool it is on and for how
   long — and a bell when it finishes or gets stuck on a permission prompt, so the
-  game tab is somewhere you can actually sit and wait.
+  game tab is somewhere you can actually sit and wait. With more than one tab open it
+  counts them by state, so one Claude waiting on you never hides the two still working.
 - A patch of grass with someone walking through it, who only walks while Claude is
   working. Something you can catch out of the corner of your eye.
 - HEAL greyed out for as long as Claude has the keyboard, and a blackout that leaves

@@ -1,6 +1,7 @@
 import { recordAchievements } from './achievements.mjs'
 import { isWorking, readSessions, summariseActivity } from './activity.mjs'
 import {
+  ACTIVITY_STATES,
   BAG_MESSAGES,
   BAG_MODES,
   BATTLE_MESSAGES,
@@ -165,7 +166,7 @@ export const createApp = ({
 
     encounter: null,
 
-    activity: { state: 'unknown', tool: null, since: null, sessions: 0 },
+    activity: summariseActivity([]),
 
     scene: { step: 0, frames: 0 },
 
@@ -332,11 +333,7 @@ export const createApp = ({
       if (ctx.config.bell) screen.bell?.()
     }
 
-    return (
-      next.state !== previous.state ||
-      next.tool !== previous.tool ||
-      next.sessions !== previous.sessions
-    )
+    return activityChanged(previous, next)
   }
 
   ctx.refreshUpdateNotice = () => {
@@ -946,7 +943,7 @@ export const createApp = ({
   ctx.chooseBattleOption = () => chooseBattleOption(ctx)
 
   ctx.tickScene = () => {
-    if (ctx.mode !== 'home' || ctx.activity.state !== 'working') return false
+    if (ctx.mode !== 'home' || !isWorking(ctx.activity)) return false
 
     ctx.scene.frames++
 
@@ -1058,6 +1055,15 @@ const leaveForGymList = (ctx, gymId, message) => {
   ctx.closeBag()
   ctx.persist()
   ctx.setMode('gyms')
+}
+
+const activityChanged = (previous, next) => {
+  if (next.state !== previous.state) return true
+  if (next.tool !== previous.tool) return true
+
+  return ACTIVITY_STATES.some(
+    (state) => next.counts[state] !== previous.counts[state],
+  )
 }
 
 const isSameEncounter = (entry, held) => {

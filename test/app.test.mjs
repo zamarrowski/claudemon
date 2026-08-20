@@ -355,12 +355,12 @@ const loseABattle = (app) => {
   expect(app.mode, 'and sent you home').toBe('home')
 }
 
-const reportSession = (state, tool = null) => {
+const reportSession = (state, tool = null, session = 'test-session') => {
   const now = Date.now()
 
   writeActivity({
     v: 1,
-    session: 'test-session',
+    session,
     state,
     tool,
     since: now,
@@ -1910,6 +1910,21 @@ test('Should move the walk on while Claude works, and leave it where it got to w
   expect(moved, 'something should have moved').toBeGreaterThan(0)
   expect(moved, 'but a step is worth more than one frame').toBeLessThan(20)
   expect(app.scene.step, 'every frame that moved is a step').toBe(moved)
+  expect(
+    homeView.draw(app, { cols: 100, rows: 34 }).lines.join('\n'),
+    'and the grass says so',
+  ).toContain('Rustling in the grass')
+
+  reportSession('waiting', null, 'tab-two')
+  app.refreshActivity()
+
+  expect(app.activity.state, 'the row leads with the one needing you').toBe(
+    'waiting',
+  )
+  expect(
+    runFrames(app, 20),
+    'but the walk goes on while another tab is working',
+  ).toBeGreaterThan(0)
 
   reportSession('idle')
   app.refreshActivity()
@@ -1917,7 +1932,12 @@ test('Should move the walk on while Claude works, and leave it where it got to w
   runFrames(app, 20)
 
   expect(app.scene.step, 'and they stay where they got to').toBe(stopped)
+  expect(
+    homeView.draw(app, { cols: 100, rows: 34 }).lines.join('\n'),
+    'with the grass quiet once nobody is working',
+  ).toContain('The grass is quiet')
 
+  endSession('tab-two')
   endSession('test-session')
 })
 
@@ -2092,6 +2112,43 @@ test('Should make healing wait until Claude stops working', () => {
   expect(app.save.party[0].hp, 'and it heals').toBe(app.save.party[0].stats.hp)
 
   endSession('test-session')
+})
+
+test('Should keep HEAL out while another tab is working, whatever this one is up to', () => {
+  const app = createApp({
+    screen: stubScreen(),
+    save: createSave({ trainer: 'Red', starterId: 1, rng: makeRng(1) }),
+    config: { ...DEFAULT_CONFIG },
+  })
+
+  app.save.party[0].hp = 1
+
+  reportSession('working', 'Bash', 'tab-one')
+  reportSession('waiting', null, 'tab-two')
+  app.refreshActivity()
+
+  expect(app.activity.state, 'the row leads with the one needing you').toBe(
+    'waiting',
+  )
+  expect(
+    healEntry(app).disabled,
+    'but one Claude still working is not a rest',
+  ).toBe(true)
+
+  app.openHomeSelection('heal')
+
+  expect(app.save.party[0].hp, 'and the key on it does nothing').toBe(1)
+  expect(homeView.restRow(app), 'the screen still says why').toMatch(/rest/i)
+
+  endSession('tab-one')
+  app.refreshActivity()
+
+  expect(
+    healEntry(app).disabled,
+    'once the last one stops, HEAL comes back',
+  ).toBeFalsy()
+
+  endSession('tab-two')
 })
 
 test('Should still heal on a machine with no activity hook at all', () => {

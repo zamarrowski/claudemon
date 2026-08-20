@@ -1,19 +1,16 @@
-import {
-  mkdirSync,
-  readdirSync,
-  readFileSync,
-  renameSync,
-  unlinkSync,
-  writeFileSync,
-} from 'node:fs'
+import { readdirSync, readFileSync, unlinkSync } from 'node:fs'
 import { join } from 'node:path'
+import { writeFileAtomic } from './atomicWrite.mjs'
 import {
   ACTIVITY_PRIORITY,
+  ACTIVITY_STATES,
   ACTIVITY_VERSION,
   PRUNE_MS,
   STALE_MS,
   WAITING_MESSAGE_LIMIT,
+  WORKING_STALE_MS,
 } from './constants.mjs'
+import { logError } from './log.mjs'
 import { SESSIONS_DIR, sessionFile } from './paths.mjs'
 import {
   transformRequestWriteActivity,
@@ -40,14 +37,13 @@ export const readActivity = (sessionId) => readEntry(sessionFile(sessionId))
 
 export const writeActivity = (entry) => {
   try {
-    mkdirSync(SESSIONS_DIR, { recursive: true })
-
-    const path = sessionFile(entry.session)
-    const tmp = `${path}.${process.pid}.tmp`
-
-    writeFileSync(tmp, JSON.stringify(transformRequestWriteActivity(entry)))
-    renameSync(tmp, path)
-  } catch {}
+    writeFileAtomic(
+      sessionFile(entry.session),
+      JSON.stringify(transformRequestWriteActivity(entry)),
+    )
+  } catch (error) {
+    logError('activity', error)
+  }
 
   return entry
 }
@@ -108,8 +104,17 @@ export const pruneSessions = (now = Date.now()) => {
   return removed
 }
 
+const emptyCounts = () => {
+  return { working: 0, waiting: 0, idle: 0 }
+}
+
 const unknownActivity = () => {
-  return { state: 'unknown', tool: null, since: null, sessions: 0 }
+  return {
+    state: 'unknown',
+    tool: null,
+    since: null,
+    counts: emptyCounts(),
+  }
 }
 
 const sinceOf = (entry, fallback) => {
@@ -118,32 +123,65 @@ const sinceOf = (entry, fallback) => {
   return fallback
 }
 
+const settledState = (entry, now) => {
+  if (entry.state !== 'working') return entry.state
+  if (now - entry.at < WORKING_STALE_MS) return 'working'
+
+  return 'idle'
+}
+
+const countStates = (live, now) => {
+  const counts = emptyCounts()
+
+  for (const entry of live) {
+    const state = settledState(entry, now)
+
+    if (ACTIVITY_STATES.includes(state)) counts[state]++
+  }
+
+  return counts
+}
+
+const leaderOf = (live, state, now) => {
+  const matching = live.filter((entry) => settledState(entry, now) === state)
+
+  return matching.reduce((best, entry) => (entry.at > best.at ? entry : best))
+}
+
 export const summariseActivity = (sessions, now = Date.now()) => {
   const live = sessions.filter((entry) => now - entry.at < STALE_MS)
 
   if (live.length === 0) return unknownActivity()
 
+  const counts = countStates(live, now)
+
   for (const state of ACTIVITY_PRIORITY) {
-    const matching = live.filter((entry) => entry.state === state)
+    if (counts[state] === 0) continue
 
-    if (matching.length === 0) continue
-
-    const leader = matching.reduce((best, entry) =>
-      entry.at > best.at ? entry : best,
-    )
+    const leader = leaderOf(live, state, now)
 
     return {
       state,
       tool: leader.tool ?? null,
       since: sinceOf(leader, leader.at),
-      sessions: matching.length,
+      counts,
     }
   }
 
   return unknownActivity()
 }
 
-export const isWorking = (activity) => activity?.state === 'working'
+export const isWorking = (activity) => activity?.counts?.working > 0
+
+export const workingInterval = (entry, now) => {
+  if (entry?.state !== 'working') return null
+
+  const elapsed = now - entry.at
+
+  if (elapsed <= 0 || elapsed >= WORKING_STALE_MS) return null
+
+  return { from: entry.at, to: now }
+}
 
 const resolveCwd = (cwd, previous) => cwd ?? previous?.cwd ?? null
 
@@ -151,13 +189,6 @@ const resolveSince = (previous, continuing, at) => {
   if (!continuing) return at
 
   return sinceOf(previous, at)
-}
-
-const resolveLastStepAt = (lastStepAt, previous, continuing, at) => {
-  if (lastStepAt != null) return lastStepAt
-  if (!continuing) return at
-
-  return previous.lastStepAt ?? at
 }
 
 const resolvePendingSteps = (pendingSteps, previous) => {
@@ -184,17 +215,11 @@ export const beginTurn = (sessionId, cwd, { pendingSteps = 0 } = {}) => {
     state: 'working',
     tool: null,
     since: at,
-    lastStepAt: at,
     pendingSteps,
   })
 }
 
-export const noteTool = (
-  sessionId,
-  cwd,
-  tool,
-  { lastStepAt, pendingSteps } = {},
-) => {
+export const noteTool = (sessionId, cwd, tool, { pendingSteps } = {}) => {
   const previous = readActivity(sessionId)
   const at = Date.now()
   const working = previous?.state === 'working'
@@ -207,7 +232,6 @@ export const noteTool = (
     state: 'working',
     tool: tool ?? null,
     since: resolveSince(previous, working, at),
-    lastStepAt: resolveLastStepAt(lastStepAt, previous, working, at),
     pendingSteps: resolvePendingSteps(pendingSteps, previous),
   })
 }
@@ -225,13 +249,12 @@ export const noteWaiting = (sessionId, cwd, message) => {
     state: 'waiting',
     tool: previous?.tool ?? null,
     since: resolveSince(previous, already, at),
-    lastStepAt: previous?.lastStepAt ?? at,
     pendingSteps: previous?.pendingSteps ?? 0,
     message: truncateMessage(message),
   })
 }
 
-export const endTurn = (sessionId, cwd, { lastStepAt } = {}) => {
+export const endTurn = (sessionId, cwd, { pendingSteps } = {}) => {
   const previous = readActivity(sessionId)
   const at = Date.now()
 
@@ -243,8 +266,7 @@ export const endTurn = (sessionId, cwd, { lastStepAt } = {}) => {
     state: 'idle',
     tool: null,
     since: at,
-    lastStepAt: lastStepAt ?? at,
-    pendingSteps: 0,
+    pendingSteps: pendingSteps ?? 0,
   })
 }
 

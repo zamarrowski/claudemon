@@ -2,9 +2,12 @@
 
 import { mkdirSync, watch } from 'node:fs'
 import { basename, resolve } from 'node:path'
+import { isWorking } from '../src/activity.mjs'
 import { createApp } from '../src/app.mjs'
 import { loadConfig } from '../src/config.mjs'
 import {
+  ALREADY_OPEN_HINT,
+  ALREADY_OPEN_MESSAGE,
   CARD_NO_OPEN_FLAG,
   CARD_NO_SAVE_HINT,
   CARD_NO_SAVE_MESSAGE,
@@ -19,6 +22,11 @@ import {
   UPDATE_POLL_MS,
 } from '../src/constants.mjs'
 import { isDataReady } from '../src/data.mjs'
+import {
+  claimInstance,
+  refreshInstance,
+  releaseInstance,
+} from '../src/instance.mjs'
 import { CARD_FILE, HOME, QUEUE_FILE } from '../src/paths.mjs'
 import { revealFile } from '../src/reveal.mjs'
 import { loadSave, publishStatus, recordPlayday } from '../src/state.mjs'
@@ -75,6 +83,10 @@ const main = () => {
 
   mkdirSync(HOME, { recursive: true })
 
+  const instance = claimInstance()
+
+  if (!instance) bail(ALREADY_OPEN_MESSAGE, ALREADY_OPEN_HINT)
+
   const config = loadConfig()
   const save = loadSave()
   const screen = createScreen({ input: process.stdin, output: process.stdout })
@@ -90,10 +102,14 @@ const main = () => {
   }
 
   const tickHeartbeat = () => {
+    refreshInstance(instance)
+
     if (app.gym) return
 
     openSave(app)
   }
+
+  const handleExit = () => releaseInstance(instance)
 
   const handleQueueChange = (_event, filename) => {
     if (filename !== basename(QUEUE_FILE)) return
@@ -104,8 +120,7 @@ const main = () => {
     const arrived = app.pump()
     const activityChanged = app.refreshActivity()
 
-    if (arrived || activityChanged || app.activity.state === 'working')
-      app.paint()
+    if (arrived || activityChanged || isWorking(app.activity)) app.paint()
   }
 
   const tickBlinkOrEncounter = () => {
@@ -130,6 +145,8 @@ const main = () => {
 
     app.checkForUpdates().then(handleUpdateChecked)
   }
+
+  process.on('exit', handleExit)
 
   screen.start()
   screen.onResize(handleResize)

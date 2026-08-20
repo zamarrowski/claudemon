@@ -1,6 +1,8 @@
-import { mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs'
-import { EMPTY_WORKED, HOUR_MS, STALE_MS } from './constants.mjs'
-import { HOME, WORKED_FILE } from './paths.mjs'
+import { readFileSync } from 'node:fs'
+import { writeFileAtomic } from './atomicWrite.mjs'
+import { EMPTY_WORKED, HOUR_MS } from './constants.mjs'
+import { logError } from './log.mjs'
+import { WORKED_FILE } from './paths.mjs'
 import {
   transformRequestWriteWorked,
   transformResponseWorked,
@@ -24,36 +26,31 @@ export const readWorked = () => {
 
 const writeWorked = (worked) => {
   try {
-    mkdirSync(HOME, { recursive: true })
-
-    const tmp = `${WORKED_FILE}.${process.pid}.tmp`
-
-    writeFileSync(tmp, JSON.stringify(transformRequestWriteWorked(worked)))
-    renameSync(tmp, WORKED_FILE)
-  } catch {}
+    writeFileAtomic(
+      WORKED_FILE,
+      JSON.stringify(transformRequestWriteWorked(worked)),
+    )
+  } catch (error) {
+    logError('worked', error)
+  }
 
   return worked
 }
 
 export const workedHours = (worked) => Math.floor(worked.totalMs / HOUR_MS)
 
-export const workedSince = (previous, now) => {
-  if (previous?.state !== 'working') return 0
-
-  const elapsed = now - previous.at
-
-  if (elapsed <= 0 || elapsed >= STALE_MS) return 0
-
-  return elapsed
-}
-
-export const accrueWorked = (elapsedMs, now) => {
+export const accrueWorked = (interval) => {
   const worked = readWorked()
 
-  if (elapsedMs <= 0) return worked
+  if (!interval) return worked
+
+  const gained = interval.to - Math.max(interval.from, worked.creditedTo)
+
+  if (gained <= 0) return worked
 
   return writeWorked({
-    totalMs: worked.totalMs + elapsedMs,
-    updatedAt: new Date(now).toISOString(),
+    totalMs: worked.totalMs + gained,
+    creditedTo: interval.to,
+    updatedAt: new Date(interval.to).toISOString(),
   })
 }

@@ -1,11 +1,6 @@
-import {
-  mkdirSync,
-  readFileSync,
-  renameSync,
-  unlinkSync,
-  writeFileSync,
-} from 'node:fs'
+import { readFileSync } from 'node:fs'
 import { recordAchievements } from './achievements.mjs'
+import { writeFileAtomic } from './atomicWrite.mjs'
 import {
   DAY_MS,
   EMPTY_STATS,
@@ -17,7 +12,7 @@ import {
   STARTING_MONEY,
 } from './constants.mjs'
 import { allPokemon, pokemonList } from './helpers.mjs'
-import { HOME, SAVE_FILE } from './paths.mjs'
+import { SAVE_FILE } from './paths.mjs'
 import {
   createPokemon,
   displayName,
@@ -206,20 +201,7 @@ export const publishStatus = (save) => {
 }
 
 export const saveGame = (save) => {
-  mkdirSync(HOME, { recursive: true })
-
-  const tmp = `${SAVE_FILE}.${process.pid}.tmp`
-
-  try {
-    writeFileSync(tmp, JSON.stringify(transformRequestSaveGame(save)))
-    renameSync(tmp, SAVE_FILE)
-  } catch (error) {
-    try {
-      unlinkSync(tmp)
-    } catch {}
-
-    throw error
-  }
+  writeFileAtomic(SAVE_FILE, JSON.stringify(transformRequestSaveGame(save)))
 
   try {
     publishStatus(save)
