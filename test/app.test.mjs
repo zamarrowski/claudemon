@@ -1910,6 +1910,21 @@ test('Should move the walk on while Claude works, and leave it where it got to w
   expect(moved, 'something should have moved').toBeGreaterThan(0)
   expect(moved, 'but a step is worth more than one frame').toBeLessThan(20)
   expect(app.scene.step, 'every frame that moved is a step').toBe(moved)
+  expect(
+    homeView.draw(app, { cols: 100, rows: 34 }).lines.join('\n'),
+    'and the grass says so',
+  ).toContain('Rustling in the grass')
+
+  reportSession('waiting', null, 'tab-two')
+  app.refreshActivity()
+
+  expect(app.activity.state, 'the row leads with the one needing you').toBe(
+    'waiting',
+  )
+  expect(
+    runFrames(app, 20),
+    'but the walk goes on while another tab is working',
+  ).toBeGreaterThan(0)
 
   reportSession('idle')
   app.refreshActivity()
@@ -1917,7 +1932,12 @@ test('Should move the walk on while Claude works, and leave it where it got to w
   runFrames(app, 20)
 
   expect(app.scene.step, 'and they stay where they got to').toBe(stopped)
+  expect(
+    homeView.draw(app, { cols: 100, rows: 34 }).lines.join('\n'),
+    'with the grass quiet once nobody is working',
+  ).toContain('The grass is quiet')
 
+  endSession('tab-two')
   endSession('test-session')
 })
 

@@ -2,6 +2,7 @@
 
 import { mkdirSync, watch } from 'node:fs'
 import { basename, resolve } from 'node:path'
+import { isWorking } from '../src/activity.mjs'
 import { createApp } from '../src/app.mjs'
 import { loadConfig } from '../src/config.mjs'
 import {
@@ -119,8 +120,7 @@ const main = () => {
     const arrived = app.pump()
     const activityChanged = app.refreshActivity()
 
-    if (arrived || activityChanged || app.activity.state === 'working')
-      app.paint()
+    if (arrived || activityChanged || isWorking(app.activity)) app.paint()
   }
 
   const tickBlinkOrEncounter = () => {

@@ -242,7 +242,7 @@ export const draw = (ctx, size) => {
 
   const encounter = ctx.encounter
   const lead = ctx.save.party[0]
-  const working = ctx.activity.state === 'working'
+  const working = isWorking(ctx.activity)
 
   const title = `${brightYellow('◓')} ${bold(APP_TITLE)}`
   const summary = dim(

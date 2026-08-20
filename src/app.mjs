@@ -943,7 +943,7 @@ export const createApp = ({
   ctx.chooseBattleOption = () => chooseBattleOption(ctx)
 
   ctx.tickScene = () => {
-    if (ctx.mode !== 'home' || ctx.activity.state !== 'working') return false
+    if (ctx.mode !== 'home' || !isWorking(ctx.activity)) return false
 
     ctx.scene.frames++
 
