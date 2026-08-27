@@ -13,13 +13,7 @@ import { applyItem } from './itemUse.mjs'
 import { displayName, isFainted, levelOf } from './pokemon.mjs'
 import { applyVictory, describeStep, learnMove } from './progression.mjs'
 import { ballsInBag, countOf, removeItem } from './shop.mjs'
-import {
-  activePokemon,
-  addPokemon,
-  healParty,
-  markFaced,
-  setLead,
-} from './state.mjs'
+import { activePokemon, addPokemon, healParty, markFaced } from './state.mjs'
 import { ballSteps } from './ui/ball.mjs'
 import { HIT_FRAMES } from './ui/constants.mjs'
 import { isMoveDisabled } from './volatile.mjs'
@@ -396,7 +390,6 @@ const choosePartyMember = (ctx) => {
     return
   }
 
-  setLead(ctx.save, index)
   switchIn(battle.state, chosen)
   syncBars(battle)
 
