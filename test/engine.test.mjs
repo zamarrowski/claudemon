@@ -790,6 +790,33 @@ test('Should heal the user with a draining move and say the target lost the ener
   expect(drained.text).toBe('the wild Pidgey had its energy drained!')
 })
 
+test('Should fail Dream Eater on an awake target and only feed on a sleeping one', () => {
+  const attacker = aPokemon(94, 40)
+  const foe = aPokemon(16, 40)
+
+  attacker.moves = [{ move: 'dream-eater', pp: 15, maxPp: 15 }]
+  attacker.hp = 10
+  foe.moves = [{ move: 'growl', pp: 40, maxPp: 40 }]
+
+  const battle = createBattle({ playerMon: attacker, wildMon: foe, seed: 5 })
+
+  const awake = textsOf(submitAction(battle, { type: 'move', index: 0 }))
+
+  expect(awake).toContain('Gengar used Dream Eater!')
+  expect(awake).toContain('But it failed!')
+  expect(foe.hp, 'an awake target loses nothing').toBe(foe.stats.hp)
+  expect(attacker.hp, 'and there is no dream to feed on').toBe(10)
+
+  foe.status = 'sleep'
+  foe.statusTurns = 3
+
+  const asleep = textsOf(submitAction(battle, { type: 'move', index: 0 }))
+
+  expect(asleep).toContain('the wild Pidgey had its energy drained!')
+  expect(foe.hp).toBeLessThan(foe.stats.hp)
+  expect(attacker.hp).toBeGreaterThan(10)
+})
+
 test('Should keep a Pokemon asleep on the turn the sleep lands instead of letting it shrug it off', () => {
   const attacker = aPokemon(25, 40)
 

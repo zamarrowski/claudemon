@@ -80,6 +80,27 @@ test('Should hold Self-Destruct back until the foe is worn down', () => {
   expect(pickFoeMove(battle), 'on its last legs, it blows up').toBe(1)
 })
 
+test('Should hold Dream Eater back until the player is asleep', () => {
+  const battle = {
+    player: { mon: { species: 4, stats: { speed: 50 }, status: null } },
+    foe: {
+      mon: {
+        moves: [
+          { move: 'hypnosis', pp: 20, maxPp: 20 },
+          { move: 'dream-eater', pp: 15, maxPp: 15 },
+        ],
+      },
+      volatile: emptyVolatile(),
+    },
+  }
+
+  expect(pickFoeMove(battle), 'awake, it reaches for Hypnosis').toBe(0)
+
+  battle.player.mon.status = 'sleep'
+
+  expect(pickFoeMove(battle), 'asleep, the dream is on the menu').toBe(1)
+})
+
 test('Should let priority beat speed when deciding who moves first', () => {
   const battle = {
     rng: () => 0.2,
