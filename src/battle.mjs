@@ -9,6 +9,7 @@ import {
   POISON_FRACTIONS,
   RUN_ODDS,
   SELF_KO_MOVES,
+  SLEEP_ONLY_MOVES,
   SLEEP_TURNS,
   SLEEP_WAKE_CHANCE,
   STAGE_LIMIT,
@@ -323,11 +324,18 @@ const applyDrain = (battle, attackerSide, drain, total, events) => {
   )
 }
 
+const moveFails = (battle, defenderSide, move) => {
+  if (UNSUPPORTED_MOVES.has(move.key)) return true
+  if (!SLEEP_ONLY_MOVES.has(move.key)) return false
+
+  return battle[defenderSide].mon.status !== 'sleep'
+}
+
 const resolveMove = (battle, attackerSide, move, events) => {
   const attacker = battle[attackerSide]
   const defenderSide = other(attackerSide)
 
-  if (UNSUPPORTED_MOVES.has(move.key)) {
+  if (moveFails(battle, defenderSide, move)) {
     say(events, TURN_MESSAGES.failed)
     return
   }

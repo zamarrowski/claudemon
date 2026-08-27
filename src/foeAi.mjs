@@ -4,6 +4,7 @@ import {
   FOE_AI_SCORES,
   FOE_AI_SELF_KO_HP_RATIO,
   SELF_KO_MOVES,
+  SLEEP_ONLY_MOVES,
 } from './constants.mjs'
 import { move as moveData, species } from './data.mjs'
 import { chance } from './rng.mjs'
@@ -16,22 +17,30 @@ const wastesSelfKo = (mon, key) => {
   return mon.hp > mon.stats.hp * FOE_AI_SELF_KO_HP_RATIO
 }
 
-const scoreFoeMove = (slot, mon, playerTypes) => {
+const wastesSleepOnly = (playerMon, key) => {
+  if (!SLEEP_ONLY_MOVES.has(key)) return false
+
+  return playerMon.status !== 'sleep'
+}
+
+const scoreFoeMove = (slot, mon, playerMon) => {
   const move = moveData(slot.move)
 
   if (wastesSelfKo(mon, slot.move)) return FOE_AI_SCORES.selfKo
+  if (wastesSleepOnly(playerMon, slot.move)) return FOE_AI_SCORES.sleepOnly
   if (move.damageClass === 'status') return FOE_AI_SCORES.status
 
   const power = move.power ?? FOE_AI_SCORES.defaultPower
   const accuracy = move.accuracy ?? 100
+  const multiplier = effectiveness(move.type, species(playerMon.species).types)
 
-  return (power * effectiveness(move.type, playerTypes) * accuracy) / 100
+  return (power * multiplier * accuracy) / 100
 }
 
 export const pickFoeMove = (battle) => {
   if (isLocked(battle.foe)) return lockedMoveIndex(battle.foe)
 
-  const playerTypes = species(battle.player.mon.species).types
+  const playerMon = battle.player.mon
   const mon = battle.foe.mon
 
   let bestIndex = 0
@@ -41,7 +50,7 @@ export const pickFoeMove = (battle) => {
     if (slot.pp <= 0) return
     if (isMoveDisabled(battle.foe, index)) return
 
-    const score = scoreFoeMove(slot, mon, playerTypes)
+    const score = scoreFoeMove(slot, mon, playerMon)
 
     if (score > bestScore) {
       bestScore = score
