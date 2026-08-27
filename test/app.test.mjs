@@ -1344,6 +1344,10 @@ test('Should pay a Pokemon that was swapped out the full experience, not a share
     starter.exp - before.starter,
     'the full amount each, not a share',
   ).toBe(backup.exp - before.backup)
+  expect(
+    app.save.party,
+    'and the switch was for that battle only, the lead is untouched',
+  ).toEqual([starter, backup])
 })
 
 test('Should refuse to start a battle with a fainted team, however it is reached', () => {
